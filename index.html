@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寒假积分大放送 ✨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #FFE66D 0%, #F7C59F 50%, #EF9A9A 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            min-height: 90vh;
+        }
+
+        .page {
+            display: none;
+            padding: 20px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #FFB6C1 0%, #FF69B4 100%);
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .points-card {
+            background: linear-gradient(135deg, #87CEEB 0%, #4FC3F7 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(135, 206, 235, 0.4);
+        }
+
+        .points-number {
+            font-size: 56px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .points-label {
+            font-size: 18px;
+            opacity: 0.95;
+        }
+
+        .btn {
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-signin {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+            font-size: 22px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+            color: white;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+            color: white;
+            width: auto;
+            margin-bottom: 15px;
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 16px;
+            width: auto;
+        }
+
+        .card {
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #4CAF50;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .list-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .list-item:hover {
+            transform: scale(1.02);
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-points {
+            font-size: 14px;
+            color: #FF5722;
+            font-weight: bold;
+        }
+
+        .item-points.plus {
+            color: #4CAF50;
+        }
+
+        .item-points.minus {
+            color: #FF5722;
+        }
+
+        .record-list .list-item {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .record-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .record-action {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 24px;
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .emoji {
+            font-size: 24px;
+        }
+
+        .emoji-large {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .collapsible:hover {
+            background: #e0e0e0;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 15px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .collapsible-content.show {
+            display: block;
+        }
+
+        .collapsible-arrow {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible-arrow.rotate {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="page active" id="home">
+            <div class="header">
+                <h1>🌟 寒假积分大放送 🌟</h1>
+            </div>
+            
+            <div class="points-card">
+                <div class="points-number" id="totalPoints">0</div>
+                <div class="points-label">⭐ 我的积分</div>
+            </div>
+
+            <button class="btn btn-signin" onclick="signIn()">
+                🎁 每日签到
+            </button>
+
+            <div class="card">
+                <h3>🎯 去玩什么呢？</h3>
+                <button class="btn btn-primary" onclick="showPage('tasks')">
+                    📋 任务列表
+                </button>
+                <button class="btn btn-secondary" onclick="showPage('rewards')">
+                    🎁 积分兑换
+                </button>
+                <button class="btn btn-info" onclick="showPage('records')">
+                    📝 积分记录
+                </button>
+            </div>
+        </div>
+
+        <div class="page" id="tasks">
+            <button class="btn btn-back" onclick="showPage('home')">
+                ⬅️ 返回首页
+            </button>
+            
+            <div class="header">
+                <h1>📋 任务列表</h1>
+            </div>
+
+            <div id="taskList"></div>
+        </div>
+
+        <div class="page" id="rewards">
+            <button class="btn btn-back" onclick="showPage('home')">
+                ⬅️ 返回首页
+            </button>
+            
+            <div class="header">
+                <h1>🎁 积分兑换</h1>
+            </div>
+
+            <div id="rewardList"></div>
+        </div>
+
+        <div class="page" id="records">
+            <button class="btn btn-back" onclick="showPage('home')">
+                ⬅️ 返回首页
+            </button>
+            
+            <div class="header">
+                <h1>📝 积分记录</h1>
+            </div>
+
+            <div class="collapsible" onclick="toggleManualAdd()">
+                <span style="font-weight: bold; font-size: 18px;">➕ 手动添加积分</span>
+                <span class="collapsible-arrow" id="manualAddArrow">▼</span>
+            </div>
+
+            <div class="collapsible-content" id="manualAddContent">
+                <div style="margin-bottom: 10px;">
+                    <input type="number" id="manualPoints" placeholder="积分数（可以是负数）" 
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd; 
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="manualReason" placeholder="原因" 
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd; 
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <button class="btn btn-primary" onclick="addManualRecord()">
+                    确认添加
+                </button>
+            </div>
+
+            <div class="card record-list">
+                <div id="recordList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="message" id="message"></div>
+
+    <script>
+        let points = parseInt(localStorage.getItem('points')) || 0;
+        let tasks = [];
+        let rewards = [];
+        let records = JSON.parse(localStorage.getItem('records')) || [];
+
+        async function loadTasksConfig() {
+            try {
+                const response = await fetch('tasks.txt');
+                if (response.ok) {
+                    const tasksData = await response.json();
+                    tasks = tasksData.map((task, index) => ({
+                        id: index + 1,
+                        name: task.name,
+                        points: task.points,
+                        completed: false
+                    }));
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                } else {
+                    const storedTasks = localStorage.getItem('tasks');
+                    if (storedTasks) {
+                        tasks = JSON.parse(storedTasks);
+                    } else {
+                        tasks = [
+                            { id: 1, name: '完成数学作业 📚', points: 10, completed: false },
+                            { id: 2, name: '读绘本 30 分钟 📖', points: 15, completed: false },
+                            { id: 3, name: '整理房间 🧹', points: 20, completed: false },
+                            { id: 4, name: '帮妈妈做家务 💪', points: 25, completed: false },
+                            { id: 5, name: '练习写字 ✍️', points: 10, completed: false }
+                        ];
+                    }
+                }
+            } catch (error) {
+                const storedTasks = localStorage.getItem('tasks');
+                if (storedTasks) {
+                    tasks = JSON.parse(storedTasks);
+                } else {
+                    tasks = [
+                        { id: 1, name: '完成数学作业 📚', points: 10, completed: false },
+                        { id: 2, name: '读绘本 30 分钟 📖', points: 15, completed: false },
+                        { id: 3, name: '整理房间 🧹', points: 20, completed: false },
+                        { id: 4, name: '帮妈妈做家务 💪', points: 25, completed: false },
+                        { id: 5, name: '练习写字 ✍️', points: 10, completed: false }
+                    ];
+                }
+            }
+        }
+
+        async function loadRewardsConfig() {
+            try {
+                const response = await fetch('rewards.txt');
+                if (response.ok) {
+                    const rewardsData = await response.json();
+                    rewards = rewardsData.map((reward, index) => ({
+                        id: index + 1,
+                        name: reward.name,
+                        points: reward.points
+                    }));
+                    localStorage.setItem('rewards', JSON.stringify(rewards));
+                } else {
+                    const storedRewards = localStorage.getItem('rewards');
+                    if (storedRewards) {
+                        rewards = JSON.parse(storedRewards);
+                    } else {
+                        rewards = [
+                            { id: 1, name: '小零食 🍬', points: 20 },
+                            { id: 2, name: '看动画片 1 小时 📺', points: 50 },
+                            { id: 3, name: '买小玩具 🧸', points: 100 },
+                            { id: 4, name: '出去玩 2 小时 🎠', points: 150 },
+                            { id: 5, name: '买绘本 📚', points: 200 }
+                        ];
+                    }
+                }
+            } catch (error) {
+                const storedRewards = localStorage.getItem('rewards');
+                if (storedRewards) {
+                    rewards = JSON.parse(storedRewards);
+                } else {
+                    rewards = [
+                        { id: 1, name: '小零食 🍬', points: 20 },
+                        { id: 2, name: '看动画片 1 小时 📺', points: 50 },
+                        { id: 3, name: '买小玩具 🧸', points: 100 },
+                        { id: 4, name: '出去玩 2 小时 🎠', points: 150 },
+                        { id: 5, name: '买绘本 📚', points: 200 }
+                    ];
+                }
+            }
+        }
+
+        async function init() {
+            await loadTasksConfig();
+            await loadRewardsConfig();
+            checkAndResetTasks();
+            updatePointsDisplay();
+        }
+
+        init();
+
+        function saveData() {
+            localStorage.setItem('points', points);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            localStorage.setItem('records', JSON.stringify(records));
+        }
+
+        function checkAndResetTasks() {
+            const lastResetDate = localStorage.getItem('lastResetDate');
+            const now = new Date();
+            const today = now.toDateString();
+            const currentHour = now.getHours();
+
+            let needReset = false;
+            
+            if (!lastResetDate) {
+                needReset = true;
+            } else if (lastResetDate !== today) {
+                needReset = true;
+            } else if (lastResetDate === today && currentHour >= 7 && !localStorage.getItem('resetAt7Today')) {
+                needReset = true;
+            }
+
+            if (needReset) {
+                tasks.forEach(task => {
+                    task.completed = false;
+                });
+                localStorage.setItem('lastResetDate', today);
+                if (currentHour >= 7) {
+                    localStorage.setItem('resetAt7Today', 'true');
+                }
+                saveData();
+            }
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'home') {
+                updatePointsDisplay();
+            } else if (pageId === 'tasks') {
+                renderTasks();
+            } else if (pageId === 'rewards') {
+                renderRewards();
+            } else if (pageId === 'records') {
+                renderRecords();
+            }
+        }
+
+        function updatePointsDisplay() {
+            document.getElementById('totalPoints').textContent = points;
+        }
+
+        function showMessage(text, duration = 2000) {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = text;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, duration);
+        }
+
+        function signIn() {
+            const lastSignInDate = localStorage.getItem('lastSignInDate');
+            const today = new Date().toDateString();
+            
+            if (lastSignInDate === today) {
+                showMessage('<span class="emoji-large">😊</span>今天已经签过啦！');
+                return;
+            }
+
+            const randomPoints = [-5, 0, 5, 10][Math.floor(Math.random() * 4)];
+            points += randomPoints;
+            localStorage.setItem('lastSignInDate', today);
+            
+            addRecord('每日签到', randomPoints);
+            saveData();
+            updatePointsDisplay();
+            
+            if (randomPoints > 0) {
+                showMessage(`<span class="emoji-large">🎉</span>恭喜！获得 ${randomPoints} 积分！`);
+            } else if (randomPoints === 0) {
+                showMessage('<span class="emoji-large">😊</span>签到成功！继续加油！');
+            } else {
+                showMessage(`<span class="emoji-large">💪</span>扣除 ${Math.abs(randomPoints)} 积分，继续努力！`);
+            }
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            
+            tasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${task.name}</div>
+                        <div class="item-points plus">+${task.points} 积分</div>
+                    </div>
+                    <button class="btn btn-primary btn-small" 
+                            onclick="completeTask(${task.id})" 
+                            ${task.completed ? 'disabled' : ''}>
+                        ${task.completed ? '✅ 已完成' : '完成'}
+                    </button>
+                `;
+                taskList.appendChild(item);
+            });
+        }
+
+        function completeTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && !task.completed) {
+                task.completed = true;
+                points += task.points;
+                addRecord(task.name, task.points);
+                saveData();
+                renderTasks();
+                showMessage(`<span class="emoji-large">🎉</span>太棒了！获得 ${task.points} 积分！`);
+            }
+        }
+
+        function renderRewards() {
+            const rewardList = document.getElementById('rewardList');
+            rewardList.innerHTML = '';
+            
+            rewards.forEach(reward => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div class="item-info">
+                        <div class="item-name">${reward.name}</div>
+                        <div class="item-points minus">${reward.points} 积分</div>
+                    </div>
+                    <button class="btn btn-secondary btn-small" onclick="redeemReward(${reward.id})">
+                        兑换
+                    </button>
+                `;
+                rewardList.appendChild(item);
+            });
+        }
+
+        function redeemReward(rewardId) {
+            const reward = rewards.find(r => r.id === rewardId);
+            if (reward) {
+                if (points >= reward.points) {
+                    points -= reward.points;
+                    addRecord(reward.name, -reward.points);
+                    saveData();
+                    renderRewards();
+                    showMessage(`<span class="emoji-large">🎁</span>兑换成功！获得 ${reward.name}`);
+                } else {
+                    showMessage('<span class="emoji-large">😢</span>积分不够哦，继续努力！');
+                }
+            }
+        }
+
+        function renderRecords() {
+            const recordList = document.getElementById('recordList');
+            
+            if (records.length === 0) {
+                recordList.innerHTML = '<p style="text-align:center;color:#999;">还没有记录哦</p>';
+                return;
+            }
+            
+            recordList.innerHTML = '';
+            records.slice().reverse().forEach(record => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                const pointsClass = record.points > 0 ? 'plus' : 'minus';
+                const pointsText = record.points > 0 ? `+${record.points}` : record.points;
+                item.innerHTML = `
+                    <div class="record-date">${record.date}</div>
+                    <div class="record-action">${record.action}</div>
+                    <div class="item-points ${pointsClass}">${pointsText} 积分</div>
+                `;
+                recordList.appendChild(item);
+            });
+        }
+
+        function addRecord(action, points) {
+            const record = {
+                date: new Date().toLocaleString('zh-CN'),
+                action: action,
+                points: points
+            };
+            records.push(record);
+        }
+
+        function toggleManualAdd() {
+            const content = document.getElementById('manualAddContent');
+            const arrow = document.getElementById('manualAddArrow');
+            
+            content.classList.toggle('show');
+            arrow.classList.toggle('rotate');
+        }
+
+        function addManualRecord() {
+            const pointsInput = document.getElementById('manualPoints');
+            const reasonInput = document.getElementById('manualReason');
+            
+            const manualPoints = parseInt(pointsInput.value);
+            const reason = reasonInput.value.trim();
+            
+            if (isNaN(manualPoints)) {
+                showMessage('<span class="emoji-large">😅</span>请输入有效的积分数！');
+                return;
+            }
+            
+            if (!reason) {
+                showMessage('<span class="emoji-large">😅</span>请输入原因！');
+                return;
+            }
+            
+            points += manualPoints;
+            addRecord(reason, manualPoints);
+            saveData();
+            renderRecords();
+            
+            pointsInput.value = '';
+            reasonInput.value = '';
+            
+            if (manualPoints > 0) {
+                showMessage(`<span class="emoji-large">🎉</span>添加成功！获得 ${manualPoints} 积分`);
+            } else if (manualPoints === 0) {
+                showMessage('<span class="emoji-large">✅</span>添加成功！');
+            } else {
+                showMessage(`<span class="emoji-large">✅</span>添加成功！扣除 ${Math.abs(manualPoints)} 积分`);
+            }
+        }
+    </script>
+</body>
+</html>
