@@ -1,21 +1,26 @@
 [
     {
+        "code": "MATH_HOMEWORK",
         "name": "完成数学作业 📚",
         "points": 10
     },
     {
+        "code": "READ_BOOK",
         "name": "读绘本 30 分钟 📖",
         "points": 15
     },
     {
+        "code": "TIDY_ROOM",
         "name": "整理房间 🧹",
         "points": 20
     },
     {
+        "code": "HOUSEWORK",
         "name": "帮妈妈做家务 💪",
         "points": 25
     },
     {
+        "code": "PRACTICE_WRITING",
         "name": "练习写字 ✍️",
         "points": 10
     }

@@ -281,7 +281,7 @@
             <div class="header">
                 <h1>🌟 寒假积分大放送 🌟</h1>
             </div>
-            
+
             <div class="points-card">
                 <div class="points-number" id="totalPoints">0</div>
                 <div class="points-label">⭐ 我的积分</div>
@@ -309,7 +309,7 @@
             <button class="btn btn-back" onclick="showPage('home')">
                 ⬅️ 返回首页
             </button>
-            
+
             <div class="header">
                 <h1>📋 任务列表</h1>
             </div>
@@ -321,7 +321,7 @@
             <button class="btn btn-back" onclick="showPage('home')">
                 ⬅️ 返回首页
             </button>
-            
+
             <div class="header">
                 <h1>🎁 积分兑换</h1>
             </div>
@@ -333,7 +333,7 @@
             <button class="btn btn-back" onclick="showPage('home')">
                 ⬅️ 返回首页
             </button>
-            
+
             <div class="header">
                 <h1>📝 积分记录</h1>
             </div>
@@ -345,13 +345,13 @@
 
             <div class="collapsible-content" id="manualAddContent">
                 <div style="margin-bottom: 10px;">
-                    <input type="number" id="manualPoints" placeholder="积分数（可以是负数）" 
-                           style="width: 100%; padding: 12px; border: 2px solid #ddd; 
+                    <input type="number" id="manualPoints" placeholder="积分数（可以是负数）"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
                 </div>
                 <div style="margin-bottom: 10px;">
-                    <input type="text" id="manualReason" placeholder="原因" 
-                           style="width: 100%; padding: 12px; border: 2px solid #ddd; 
+                    <input type="text" id="manualReason" placeholder="原因"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
                 </div>
                 <button class="btn btn-primary" onclick="addManualRecord()">
@@ -367,118 +367,102 @@
 
     <div class="message" id="message"></div>
 
+    <script src="jsonbin.js"></script>
     <script>
         let points = parseInt(localStorage.getItem('points')) || 0;
         let tasks = [];
         let rewards = [];
-        let records = JSON.parse(localStorage.getItem('records')) || [];
+        let records = [];
+        let lastSignInDate = null;
+        let isLoadingTasks = false;
+        let isLoadingRewards = false;
 
-        async function loadTasksConfig() {
+        async function loadTasksConfig(showLoading = false) {
+            isLoadingTasks = true;
+
             try {
-                const response = await fetch('tasks.txt');
-                if (response.ok) {
-                    const tasksData = await response.json();
+                const tasksData = await fetchTasksFromJsonbin();
+                if (tasksData && tasksData.length > 0) {
                     tasks = tasksData.map((task, index) => ({
                         id: index + 1,
                         name: task.name,
                         points: task.points,
                         completed: false
                     }));
-                    localStorage.setItem('tasks', JSON.stringify(tasks));
-                } else {
-                    const storedTasks = localStorage.getItem('tasks');
-                    if (storedTasks) {
-                        tasks = JSON.parse(storedTasks);
-                    } else {
-                        tasks = [
-                            { id: 1, name: '完成数学作业 📚', points: 10, completed: false },
-                            { id: 2, name: '读绘本 30 分钟 📖', points: 15, completed: false },
-                            { id: 3, name: '整理房间 🧹', points: 20, completed: false },
-                            { id: 4, name: '帮妈妈做家务 💪', points: 25, completed: false },
-                            { id: 5, name: '练习写字 ✍️', points: 10, completed: false }
-                        ];
-                    }
                 }
             } catch (error) {
-                const storedTasks = localStorage.getItem('tasks');
-                if (storedTasks) {
-                    tasks = JSON.parse(storedTasks);
-                } else {
-                    tasks = [
-                        { id: 1, name: '完成数学作业 📚', points: 10, completed: false },
-                        { id: 2, name: '读绘本 30 分钟 📖', points: 15, completed: false },
-                        { id: 3, name: '整理房间 🧹', points: 20, completed: false },
-                        { id: 4, name: '帮妈妈做家务 💪', points: 25, completed: false },
-                        { id: 5, name: '练习写字 ✍️', points: 10, completed: false }
-                    ];
-                }
+            }
+
+            isLoadingTasks = false;
+
+            if (document.getElementById('tasks').classList.contains('active')) {
+                renderTasks();
             }
         }
 
         async function loadRewardsConfig() {
+            isLoadingRewards = true;
+
             try {
-                const response = await fetch('rewards.txt');
-                if (response.ok) {
-                    const rewardsData = await response.json();
+                const rewardsData = await fetchRewardsFromJsonbin();
+                if (rewardsData && rewardsData.length > 0) {
                     rewards = rewardsData.map((reward, index) => ({
                         id: index + 1,
                         name: reward.name,
                         points: reward.points
                     }));
-                    localStorage.setItem('rewards', JSON.stringify(rewards));
-                } else {
-                    const storedRewards = localStorage.getItem('rewards');
-                    if (storedRewards) {
-                        rewards = JSON.parse(storedRewards);
-                    } else {
-                        rewards = [
-                            { id: 1, name: '小零食 🍬', points: 20 },
-                            { id: 2, name: '看动画片 1 小时 📺', points: 50 },
-                            { id: 3, name: '买小玩具 🧸', points: 100 },
-                            { id: 4, name: '出去玩 2 小时 🎠', points: 150 },
-                            { id: 5, name: '买绘本 📚', points: 200 }
-                        ];
+                }
+            } catch (error) {
+            }
+
+            isLoadingRewards = false;
+
+            if (document.getElementById('rewards').classList.contains('active')) {
+                renderRewards();
+            }
+        }
+
+        async function loadInfoConfig() {
+            try {
+                const infoData = await fetchInfoFromJsonbin();
+                if (infoData) {
+                    if (typeof infoData.points === 'number') {
+                        points = infoData.points;
+                    }
+                    if (Array.isArray(infoData.recrods)) {
+                        records = infoData.recrods;
+                    }
+                    if (typeof infoData.lastSignInDate === 'string') {
+                        lastSignInDate = infoData.lastSignInDate;
                     }
                 }
             } catch (error) {
-                const storedRewards = localStorage.getItem('rewards');
-                if (storedRewards) {
-                    rewards = JSON.parse(storedRewards);
-                } else {
-                    rewards = [
-                        { id: 1, name: '小零食 🍬', points: 20 },
-                        { id: 2, name: '看动画片 1 小时 📺', points: 50 },
-                        { id: 3, name: '买小玩具 🧸', points: 100 },
-                        { id: 4, name: '出去玩 2 小时 🎠', points: 150 },
-                        { id: 5, name: '买绘本 📚', points: 200 }
-                    ];
-                }
             }
         }
 
         async function init() {
             await loadTasksConfig();
             await loadRewardsConfig();
-            checkAndResetTasks();
+            await loadInfoConfig();
+            await checkAndResetTasks();
             updatePointsDisplay();
         }
 
         init();
 
-        function saveData() {
+        async function saveData() {
             localStorage.setItem('points', points);
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            localStorage.setItem('records', JSON.stringify(records));
+            await saveInfoToJsonbin(points, records, lastSignInDate);
         }
 
-        function checkAndResetTasks() {
+        async function checkAndResetTasks() {
             const lastResetDate = localStorage.getItem('lastResetDate');
             const now = new Date();
             const today = now.toDateString();
             const currentHour = now.getHours();
 
             let needReset = false;
-            
+
             if (!lastResetDate) {
                 needReset = true;
             } else if (lastResetDate !== today) {
@@ -495,7 +479,7 @@
                 if (currentHour >= 7) {
                     localStorage.setItem('resetAt7Today', 'true');
                 }
-                saveData();
+                await saveData();
             }
         }
 
@@ -504,13 +488,19 @@
                 page.classList.remove('active');
             });
             document.getElementById(pageId).classList.add('active');
-            
+
             if (pageId === 'home') {
                 updatePointsDisplay();
             } else if (pageId === 'tasks') {
                 renderTasks();
+                if (tasks.length === 0 && !isLoadingTasks) {
+                    loadTasksConfig();
+                }
             } else if (pageId === 'rewards') {
                 renderRewards();
+                if (rewards.length === 0 && !isLoadingRewards) {
+                    loadRewardsConfig();
+                }
             } else if (pageId === 'records') {
                 renderRecords();
             }
@@ -529,10 +519,9 @@
             }, duration);
         }
 
-        function signIn() {
-            const lastSignInDate = localStorage.getItem('lastSignInDate');
+        async function signIn() {
             const today = new Date().toDateString();
-            
+
             if (lastSignInDate === today) {
                 showMessage('<span class="emoji-large">😊</span>今天已经签过啦！');
                 return;
@@ -540,12 +529,12 @@
 
             const randomPoints = [-5, 0, 5, 10][Math.floor(Math.random() * 4)];
             points += randomPoints;
-            localStorage.setItem('lastSignInDate', today);
-            
+            lastSignInDate = today;
+
             addRecord('每日签到', randomPoints);
-            saveData();
+            await saveData();
             updatePointsDisplay();
-            
+
             if (randomPoints > 0) {
                 showMessage(`<span class="emoji-large">🎉</span>恭喜！获得 ${randomPoints} 积分！`);
             } else if (randomPoints === 0) {
@@ -558,7 +547,17 @@
         function renderTasks() {
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
-            
+
+            if (isLoadingTasks) {
+                taskList.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">加载中...</p>';
+                return;
+            }
+
+            if (tasks.length === 0) {
+                taskList.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">暂无可用任务</p>';
+                return;
+            }
+
             tasks.forEach(task => {
                 const item = document.createElement('div');
                 item.className = 'list-item';
@@ -567,8 +566,8 @@
                         <div class="item-name">${task.name}</div>
                         <div class="item-points plus">+${task.points} 积分</div>
                     </div>
-                    <button class="btn btn-primary btn-small" 
-                            onclick="completeTask(${task.id})" 
+                    <button class="btn btn-primary btn-small"
+                            onclick="completeTask(${task.id})"
                             ${task.completed ? 'disabled' : ''}>
                         ${task.completed ? '✅ 已完成' : '完成'}
                     </button>
@@ -577,13 +576,13 @@
             });
         }
 
-        function completeTask(taskId) {
+        async function completeTask(taskId) {
             const task = tasks.find(t => t.id === taskId);
             if (task && !task.completed) {
                 task.completed = true;
                 points += task.points;
                 addRecord(task.name, task.points);
-                saveData();
+                await saveData();
                 renderTasks();
                 showMessage(`<span class="emoji-large">🎉</span>太棒了！获得 ${task.points} 积分！`);
             }
@@ -592,7 +591,17 @@
         function renderRewards() {
             const rewardList = document.getElementById('rewardList');
             rewardList.innerHTML = '';
-            
+
+            if (isLoadingRewards) {
+                rewardList.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">加载中...</p>';
+                return;
+            }
+
+            if (rewards.length === 0) {
+                rewardList.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">暂无可用兑换</p>';
+                return;
+            }
+
             rewards.forEach(reward => {
                 const item = document.createElement('div');
                 item.className = 'list-item';
@@ -609,13 +618,13 @@
             });
         }
 
-        function redeemReward(rewardId) {
+        async function redeemReward(rewardId) {
             const reward = rewards.find(r => r.id === rewardId);
             if (reward) {
                 if (points >= reward.points) {
                     points -= reward.points;
                     addRecord(reward.name, -reward.points);
-                    saveData();
+                    await saveData();
                     renderRewards();
                     showMessage(`<span class="emoji-large">🎁</span>兑换成功！获得 ${reward.name}`);
                 } else {
@@ -626,12 +635,12 @@
 
         function renderRecords() {
             const recordList = document.getElementById('recordList');
-            
+
             if (records.length === 0) {
                 recordList.innerHTML = '<p style="text-align:center;color:#999;">还没有记录哦</p>';
                 return;
             }
-            
+
             recordList.innerHTML = '';
             records.slice().reverse().forEach(record => {
                 const item = document.createElement('div');
@@ -659,36 +668,36 @@
         function toggleManualAdd() {
             const content = document.getElementById('manualAddContent');
             const arrow = document.getElementById('manualAddArrow');
-            
+
             content.classList.toggle('show');
             arrow.classList.toggle('rotate');
         }
 
-        function addManualRecord() {
+        async function addManualRecord() {
             const pointsInput = document.getElementById('manualPoints');
             const reasonInput = document.getElementById('manualReason');
-            
+
             const manualPoints = parseInt(pointsInput.value);
             const reason = reasonInput.value.trim();
-            
+
             if (isNaN(manualPoints)) {
                 showMessage('<span class="emoji-large">😅</span>请输入有效的积分数！');
                 return;
             }
-            
+
             if (!reason) {
                 showMessage('<span class="emoji-large">😅</span>请输入原因！');
                 return;
             }
-            
+
             points += manualPoints;
             addRecord(reason, manualPoints);
-            saveData();
+            await saveData();
             renderRecords();
-            
+
             pointsInput.value = '';
             reasonInput.value = '';
-            
+
             if (manualPoints > 0) {
                 showMessage(`<span class="emoji-large">🎉</span>添加成功！获得 ${manualPoints} 积分`);
             } else if (manualPoints === 0) {
