@@ -1,11 +1,13 @@
 [
     {
         "name": "听故事 🎧",
-        "points": 20
+        "points": 20,
+        "maxDailyTimes": 3
     },
     {
         "name": "玩游戏1小时 🎮",
-        "points": 50
+        "points": 50,
+        "maxDailyTimes": 1
     },
     {
         "name": "买小玩具 🧸",
@@ -13,7 +15,8 @@
     },
     {
         "name": "出去玩 2 小时 🎠",
-        "points": 150
+        "points": 150,
+        "maxDailyTimes": 1
     },
     {
         "name": "买绘本 📚",
