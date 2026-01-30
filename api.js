@@ -5,45 +5,81 @@ const RecordType = {
     MANUAL: 'manual'
 };
 
-class JsonBinAPI {
-    constructor(apiKey, binId) {
-        this.apiKey = apiKey;
-        this.binId = binId;
-        this.baseUrl = 'https://api.jsonbin.io/v3';
+class GiteeAPI {
+    constructor(token, owner, repo, path) {
+        this.token = token;
+        this.owner = owner;
+        this.repo = repo;
+        this.path = path;
+        this.baseUrl = 'https://gitee.com/api/v5';
     }
 
     getHeaders() {
         return {
             'Content-Type': 'application/json',
-            'X-Master-Key': this.apiKey
+            'Authorization': `token ${this.token}`
         };
     }
 
-    async getData() {
+    async getFileContent() {
         try {
-            const response = await fetch(`${this.baseUrl}/b/${this.binId}/latest`, {
+            const response = await fetch(`${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${this.path}`, {
                 method: 'GET',
                 headers: this.getHeaders()
             });
 
             if (!response.ok) {
+                if (response.status === 404) {
+                    return { content: null, sha: null };
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            return data.record;
+            if (!data.content) {
+                return { content: null, sha: data.sha || null };
+            }
+
+            const binaryString = atob(data.content.replace(/\n/g, ''));
+            const uint8Array = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                uint8Array[i] = binaryString.charCodeAt(i);
+            }
+            const decoder = new TextDecoder();
+            const content = decoder.decode(uint8Array);
+
+            return { content: JSON.parse(content), sha: data.sha };
         } catch (error) {
-            console.error('Error fetching data from JsonBin:', error);
-            return null;
+            console.error('Error fetching data from Gitee:', error);
+            return { content: null, sha: null };
         }
     }
 
-    async updateData(data) {
+    async updateFileContent(data, sha) {
         try {
-            const response = await fetch(`${this.baseUrl}/b/${this.binId}`, {
-                method: 'PUT',
+            const jsonString = JSON.stringify(data);
+            const encoder = new TextEncoder();
+            const uint8Array = encoder.encode(jsonString);
+            let binary = '';
+            for (let i = 0; i < uint8Array.length; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            const content = btoa(binary);
+
+            const method = sha ? 'PUT' : 'POST';
+            const body = sha ? {
+                content: content,
+                sha: sha,
+                message: `Update ${this.path}`
+            } : {
+                content: content,
+                message: `Create ${this.path}`
+            };
+
+            const response = await fetch(`${this.baseUrl}/repos/${this.owner}/${this.repo}/contents/${this.path}`, {
+                method: method,
                 headers: this.getHeaders(),
-                body: JSON.stringify(data)
+                body: JSON.stringify(body)
             });
 
             if (!response.ok) {
@@ -51,31 +87,35 @@ class JsonBinAPI {
             }
 
             const result = await response.json();
-            return result.record;
+            return { success: true, sha: result.content.sha };
         } catch (error) {
-            console.error('Error updating data to JsonBin:', error);
-            return null;
+            console.error('Error updating data to Gitee:', error);
+            return { success: false, sha: null };
         }
     }
 
     async getAllData() {
-        return await this.getData();
+        const { content } = await this.getFileContent();
+        return content;
     }
 
     async saveData(records, lastSignInDate) {
+        const { content, sha } = await this.getFileContent();
         const data = {
             records: records,
             lastSignInDate: lastSignInDate
         };
 
-        const result = await this.updateData(data);
-        return result !== null;
+        const result = await this.updateFileContent(data, sha);
+        return result.success;
     }
 }
 
-const jsonBinAPI = new JsonBinAPI(
-    '$2a$10$7HxQHGmX3HX93FmglToz1.fo7uQaY1UP8TfmNiob6MVB71K7pGOPy',
-    '697ca59ad0ea881f4092f0d0'
+const giteeAPI = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus.json'
 );
 
 async function fetchLocalJson(filename) {

@@ -1,32 +1,20 @@
 [
     {
-        "code": "MATH_HOMEWORK",
-        "name": "完成数学作业 📚",
-        "points": 10,
+        "code": "EXERCISE_30MIN",
+        "name": "运动锻炼 30 分钟 🏃",
+        "points": 5,
+        "maxDailyTimes": 4
+    },
+    {
+        "code": "RECITE_CONCEPT",
+        "name": "背诵新概念 📚",
+        "points": 5,
         "maxDailyTimes": 1
     },
     {
-        "code": "READ_BOOK",
-        "name": "读绘本 30 分钟 📖",
-        "points": 15,
-        "maxDailyTimes": 3
-    },
-    {
-        "code": "TIDY_ROOM",
-        "name": "整理房间 🧹",
-        "points": 20,
+        "code": "READ_ESSAY",
+        "name": "熟读满分作文 ✍️",
+        "points": 5,
         "maxDailyTimes": 1
-    },
-    {
-        "code": "HOUSEWORK",
-        "name": "帮妈妈做家务 💪",
-        "points": 25,
-        "maxDailyTimes": 2
-    },
-    {
-        "code": "PRACTICE_WRITING",
-        "name": "练习写字 ✍️",
-        "points": 10,
-        "maxDailyTimes": 2
     }
 ]

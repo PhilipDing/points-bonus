@@ -199,6 +199,48 @@
             color: #666;
         }
 
+        .voucher-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .voucher-item:hover {
+            transform: scale(1.02);
+        }
+
+        .voucher-info {
+            flex: 1;
+        }
+
+        .voucher-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .voucher-date {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .voucher-used {
+            opacity: 0.5;
+            background: #f0f0f0;
+        }
+
+        .voucher-used .voucher-name {
+            text-decoration: line-through;
+            color: #999;
+        }
+
         .message {
             position: fixed;
             top: 50%;
@@ -334,6 +376,9 @@
                 <button class="btn btn-secondary" onclick="showPage('rewards')">
                     🎁 积分兑换
                 </button>
+                <button class="btn btn-info" onclick="showPage('vouchers')">
+                    🎫 我的卡券
+                </button>
                 <button class="btn btn-info" onclick="showPage('records')">
                     📝 积分记录
                 </button>
@@ -362,6 +407,18 @@
             </div>
 
             <div id="rewardList"></div>
+        </div>
+
+        <div class="page" id="vouchers">
+            <button class="btn btn-back" onclick="showPage('home')">
+                ⬅️ 返回首页
+            </button>
+
+            <div class="header">
+                <h1>🎫 我的卡券</h1>
+            </div>
+
+            <div id="voucherList"></div>
         </div>
 
         <div class="page" id="records">

@@ -1,25 +1,20 @@
 [
     {
-        "name": "听故事 🎧",
-        "points": 20,
-        "maxDailyTimes": 3
-    },
-    {
-        "name": "玩游戏1小时 🎮",
-        "points": 50,
+        "code": "SLEEP_MIDDLE",
+        "name": "陪睡券（中间）🛏️",
+        "points": 15,
         "maxDailyTimes": 1
     },
     {
-        "name": "买小玩具 🧸",
-        "points": 100
-    },
-    {
-        "name": "出去玩 2 小时 🎠",
-        "points": 150,
+        "code": "SLEEP_FOOT",
+        "name": "陪睡券（脚头）🦶",
+        "points": 5,
         "maxDailyTimes": 1
     },
     {
-        "name": "买绘本 📚",
-        "points": 200
+        "code": "PLAY_GAME_1HOUR",
+        "name": "玩游戏 1 小时 🕹️",
+        "points": 100,
+        "maxDailyTimes": 1
     }
 ]
