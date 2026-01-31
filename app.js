@@ -8,6 +8,8 @@ class PointsApp {
         this.completingTaskId = null;
         this.redeemingRewardId = null;
         this.usingVoucherDate = null;
+        this.addingReward = false;
+        this.addingTask = false;
         this.init();
     }
 
@@ -355,6 +357,168 @@ class PointsApp {
         }
     }
 
+    toggleAddReward() {
+        const content = document.getElementById('addRewardContent');
+        const arrow = document.getElementById('addRewardArrow');
+        content.classList.toggle('show');
+        arrow.classList.toggle('rotate');
+    }
+
+    async addCustomReward() {
+        if (this.addingReward) {
+            return;
+        }
+
+        const nameInput = document.getElementById('rewardName');
+        const pointsInput = document.getElementById('rewardPoints');
+        const maxDailyTimesInput = document.getElementById('rewardMaxDailyTimes');
+
+        const name = nameInput.value.trim();
+        const points = parseInt(pointsInput.value);
+        const maxDailyTimes = maxDailyTimesInput.value ? parseInt(maxDailyTimesInput.value) : null;
+
+        if (!name) {
+            this.showMessage('<span class="emoji-large">⚠️</span>请输入奖品名称！');
+            return;
+        }
+
+        if (isNaN(points) || points <= 0) {
+            this.showMessage('<span class="emoji-large">⚠️</span>请输入有效的积分！');
+            return;
+        }
+
+        this.addingReward = true;
+        this.setAddRewardButtonLoading(true);
+
+        try {
+            const { content: existingRewards, sha } = await customRewardsAPI.getFileContent();
+            const newReward = {
+                code: `CUSTOM_${Date.now()}`,
+                name: name,
+                points: points,
+                maxDailyTimes: maxDailyTimes
+            };
+
+            const updatedRewards = [...(existingRewards || []), newReward];
+            const result = await customRewardsAPI.updateFileContent(updatedRewards, sha);
+
+            if (result.success) {
+                nameInput.value = '';
+                pointsInput.value = '';
+                maxDailyTimesInput.value = '';
+                this.toggleAddReward();
+
+                await this.loadRewards();
+                this.renderRewards();
+                this.showMessage(`<span class="emoji-large">✅</span>奖品添加成功！`);
+            } else {
+                this.showMessage('<span class="emoji-large">❌</span>添加失败，请重试！');
+            }
+        } catch (error) {
+            console.error('Error adding custom reward:', error);
+            this.showMessage('<span class="emoji-large">❌</span>添加失败，请重试！');
+        }
+
+        this.addingReward = false;
+        this.setAddRewardButtonLoading(false);
+    }
+
+    setAddRewardButtonLoading(isLoading) {
+        const btn = document.getElementById('addRewardBtn');
+        if (btn) {
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoading = btn.querySelector('.btn-loading');
+            btn.disabled = isLoading;
+            if (btnText) {
+                btnText.style.display = isLoading ? 'none' : 'inline';
+            }
+            if (btnLoading) {
+                btnLoading.style.display = isLoading ? 'inline' : 'none';
+            }
+        }
+    }
+
+    toggleAddTask() {
+        const content = document.getElementById('addTaskContent');
+        const arrow = document.getElementById('addTaskArrow');
+        content.classList.toggle('show');
+        arrow.classList.toggle('rotate');
+    }
+
+    async addCustomTask() {
+        if (this.addingTask) {
+            return;
+        }
+
+        const nameInput = document.getElementById('taskName');
+        const pointsInput = document.getElementById('taskPoints');
+        const maxDailyTimesInput = document.getElementById('taskMaxDailyTimes');
+
+        const name = nameInput.value.trim();
+        const points = parseInt(pointsInput.value);
+        const maxDailyTimes = maxDailyTimesInput.value ? parseInt(maxDailyTimesInput.value) : 1;
+
+        if (!name) {
+            this.showMessage('<span class="emoji-large">⚠️</span>请输入任务名称！');
+            return;
+        }
+
+        if (isNaN(points) || points <= 0) {
+            this.showMessage('<span class="emoji-large">⚠️</span>请输入有效的积分！');
+            return;
+        }
+
+        this.addingTask = true;
+        this.setAddTaskButtonLoading(true);
+
+        try {
+            const { content: existingTasks, sha } = await customTasksAPI.getFileContent();
+            const newTask = {
+                code: `CUSTOM_${Date.now()}`,
+                name: name,
+                points: points,
+                maxDailyTimes: maxDailyTimes
+            };
+
+            const updatedTasks = [...(existingTasks || []), newTask];
+            const result = await customTasksAPI.updateFileContent(updatedTasks, sha);
+
+            if (result.success) {
+                nameInput.value = '';
+                pointsInput.value = '';
+                maxDailyTimesInput.value = '';
+                this.toggleAddTask();
+
+                await this.loadTasks();
+                this.renderTasks();
+                this.showMessage(`<span class="emoji-large">✅</span>任务添加成功！`);
+            } else {
+                this.showMessage('<span class="emoji-large">❌</span>添加失败，请重试！');
+            }
+        } catch (error) {
+            console.error('Error adding custom task:', error);
+            this.showMessage('<span class="emoji-large">❌</span>添加失败，请重试！');
+        }
+
+        this.addingTask = false;
+        this.setAddTaskButtonLoading(false);
+    }
+
+    setAddTaskButtonLoading(isLoading) {
+        const btn = document.getElementById('addTaskBtn');
+        if (btn) {
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoading = btn.querySelector('.btn-loading');
+            btn.disabled = isLoading;
+            if (btnText) {
+                btnText.style.display = isLoading ? 'none' : 'inline';
+            }
+            if (btnLoading) {
+                btnLoading.style.display = isLoading ? 'inline' : 'none';
+            }
+        }
+    }
+
     renderTasks() {
         const taskList = document.getElementById('taskList');
         taskList.innerHTML = '';
@@ -534,4 +698,20 @@ function addManualRecord() {
 
 function useVoucher(recordDate) {
     app.useVoucher(recordDate);
+}
+
+function toggleAddReward() {
+    app.toggleAddReward();
+}
+
+function addCustomReward() {
+    app.addCustomReward();
+}
+
+function toggleAddTask() {
+    app.toggleAddTask();
+}
+
+function addCustomTask() {
+    app.addCustomTask();
 }

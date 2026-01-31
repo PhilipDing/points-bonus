@@ -2,19 +2,31 @@
     {
         "code": "SLEEP_MIDDLE",
         "name": "陪睡券（中间）🛏️",
-        "points": 15,
+        "points": 30,
         "maxDailyTimes": 1
     },
     {
         "code": "SLEEP_FOOT",
         "name": "陪睡券（脚头）🦶",
-        "points": 5,
+        "points": 10,
+        "maxDailyTimes": 1
+    },
+    {
+        "code": "SLEEP_SIDES",
+        "name": "陪睡券（两侧）🛏️",
+        "points": 20,
         "maxDailyTimes": 1
     },
     {
         "code": "PLAY_GAME_1HOUR",
         "name": "玩游戏 1 小时 🕹️",
-        "points": 100,
+        "points": 50,
         "maxDailyTimes": 1
+    },
+    {
+        "code": "LISTEN_STORY",
+        "name": "听故事 20 分钟 📖",
+        "points": 5,
+        "maxDailyTimes": 3
     }
 ]

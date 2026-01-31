@@ -394,6 +394,33 @@
                 <h1>📋 任务列表</h1>
             </div>
 
+            <div class="collapsible" onclick="toggleAddTask()">
+                <span style="font-weight: bold; font-size: 18px;">➕ 添加新任务</span>
+                <span class="collapsible-arrow" id="addTaskArrow">▼</span>
+            </div>
+
+            <div class="collapsible-content" id="addTaskContent">
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="taskName" placeholder="任务名称"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="number" id="taskPoints" placeholder="奖励积分"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="number" id="taskMaxDailyTimes" placeholder="每日完成次数（可选，默认1次）"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <button class="btn btn-primary" id="addTaskBtn" onclick="addCustomTask()">
+                    <span class="btn-text">确认添加</span>
+                    <span class="btn-loading" style="display: none;">进行中...</span>
+                </button>
+            </div>
+
             <div id="taskList"></div>
         </div>
 
@@ -404,6 +431,33 @@
 
             <div class="header">
                 <h1>🎁 积分兑换</h1>
+            </div>
+
+            <div class="collapsible" onclick="toggleAddReward()">
+                <span style="font-weight: bold; font-size: 18px;">➕ 添加新奖品</span>
+                <span class="collapsible-arrow" id="addRewardArrow">▼</span>
+            </div>
+
+            <div class="collapsible-content" id="addRewardContent">
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="rewardName" placeholder="奖品名称"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="number" id="rewardPoints" placeholder="所需积分"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <input type="number" id="rewardMaxDailyTimes" placeholder="每日兑换次数（可选，留空不限制）"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <button class="btn btn-primary" id="addRewardBtn" onclick="addCustomReward()">
+                    <span class="btn-text">确认添加</span>
+                    <span class="btn-loading" style="display: none;">进行中...</span>
+                </button>
             </div>
 
             <div id="rewardList"></div>

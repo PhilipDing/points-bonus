@@ -118,6 +118,20 @@ const giteeAPI = new GiteeAPI(
     'points-bonus.json'
 );
 
+const customRewardsAPI = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-rewards.json'
+);
+
+const customTasksAPI = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-tasks.json'
+);
+
 async function fetchLocalJson(filename) {
     try {
         const response = await fetch(filename);
@@ -134,9 +148,11 @@ async function fetchLocalJson(filename) {
 }
 
 async function fetchTasks() {
-    return await fetchLocalJson('tasks.json');
+    const { content: customTasks } = await customTasksAPI.getFileContent();
+    return customTasks || [];
 }
 
 async function fetchRewards() {
-    return await fetchLocalJson('rewards.json');
+    const { content: customRewards } = await customRewardsAPI.getFileContent();
+    return customRewards || [];
 }
