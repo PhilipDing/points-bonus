@@ -156,8 +156,9 @@ class PointsApp {
                     code: task.code,
                     name: task.name,
                     points: task.points,
-                    maxDailyTimes: task.maxDailyTimes || 1,
-                    completedCount: 0
+                    maxDailyTimes: task.maxDailyTimes,
+                    completedCount: 0,
+                    description: task.description || ''
                 }));
 
                 this.tasks.forEach(task => {
@@ -456,7 +457,7 @@ class PointsApp {
 
         const name = nameInput.value.trim();
         const points = parseInt(pointsInput.value);
-        const maxDailyTimes = maxDailyTimesInput.value ? parseInt(maxDailyTimesInput.value) : 1;
+        const maxDailyTimes = maxDailyTimesInput.value ? parseInt(maxDailyTimesInput.value) : null;
 
         if (!name) {
             this.showMessage('<span class="emoji-large">⚠️</span>请输入任务名称！');
@@ -528,22 +529,31 @@ class PointsApp {
             return;
         }
 
+        console.log('=>this.tasks', this.tasks);
+
         this.tasks.forEach(task => {
             const item = document.createElement('div');
             item.className = 'list-item';
             const isLoading = this.completingTaskId === task.id;
-            const isCompleted = task.completedCount >= task.maxDailyTimes;
-            const remainingTimes = task.maxDailyTimes - task.completedCount;
+            const isCompleted = task.maxDailyTimes && task.completedCount >= task.maxDailyTimes;
+            const remainingTimes = task.maxDailyTimes ? task.maxDailyTimes - task.completedCount : null;
+            const pointsText = task.points > 0 ? `+${task.points}` : `${task.points}`;
+            const pointsClass = task.points > 0 ? 'plus' : 'minus';
+            const descriptionHtml = task.description ? `<div class="task-description">${task.description}</div>` : '';
+            const buttonText = task.maxDailyTimes
+                ? (isCompleted ? '✅ 已完成' : `完成 (${remainingTimes}/${task.maxDailyTimes})`)
+                : '完成';
             item.innerHTML = `
                 <div class="item-info">
                     <div class="item-name">${task.name}</div>
-                    <div class="item-points plus">+${task.points} 积分</div>
+                    ${descriptionHtml}
+                    <div class="item-points ${pointsClass}">${pointsText} 积分</div>
                 </div>
                 <button class="btn btn-primary btn-small"
                         id="taskBtn-${task.id}"
                         onclick="app.completeTask(${task.id})"
                         ${isCompleted || isLoading ? 'disabled' : ''}>
-                    <span class="btn-text" style="display: ${isLoading ? 'none' : 'inline'};">${isCompleted ? '✅ 已完成' : `完成 (${remainingTimes}/${task.maxDailyTimes})`}</span>
+                    <span class="btn-text" style="display: ${isLoading ? 'none' : 'inline'};">${buttonText}</span>
                     <span class="btn-loading" style="display: ${isLoading ? 'inline' : 'none'};">进行中...</span>
                 </button>
             `;
@@ -557,7 +567,7 @@ class PointsApp {
         }
 
         const task = this.tasks.find(t => t.id === taskId);
-        if (task && task.completedCount < task.maxDailyTimes) {
+        if (task && (!task.maxDailyTimes || task.completedCount < task.maxDailyTimes)) {
             this.completingTaskId = taskId;
             this.renderTasks();
 

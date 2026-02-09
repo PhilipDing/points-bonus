@@ -169,6 +169,14 @@
             margin-bottom: 5px;
         }
 
+        .task-description {
+            font-size: 13px;
+            color: #999;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
         .item-points {
             font-size: 14px;
             color: #FF5722;
@@ -411,7 +419,7 @@
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
                 </div>
                 <div style="margin-bottom: 10px;">
-                    <input type="number" id="taskMaxDailyTimes" placeholder="每日完成次数（可选，默认1次）"
+                    <input type="number" id="taskMaxDailyTimes" placeholder="每日完成次数（可选，留空不限制）"
                            style="width: 100%; padding: 12px; border: 2px solid #ddd;
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
                 </div>
@@ -511,7 +519,7 @@
         </div>
     </div>
 
-    <div class="message" id="message"></div>
+    <div class="message" id="message" onclick="this.style.display='none'"></div>
 
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
