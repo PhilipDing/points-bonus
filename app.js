@@ -101,7 +101,14 @@ class PointsApp {
             return;
         }
 
-        const randomPoints = [-5, 0, 5, 10][Math.floor(Math.random() * 4)];
+        let randomPoints;
+        if (Math.random() < 0.8) {
+            // 80% 概率获得 -5 到 5 之间的积分
+            randomPoints = Math.floor(Math.random() * 11) - 5;
+        } else {
+            // 20% 概率获得 6 到 10 之间的积分（高分奖励）
+            randomPoints = Math.floor(Math.random() * 5) + 6;
+        }
 
         const record = {
             type: RecordType.SIGN_IN,

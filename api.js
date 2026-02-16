@@ -5,6 +5,34 @@ const RecordType = {
     MANUAL: 'manual'
 };
 
+function isLocalhost() {
+    const hostname = window.location.hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+}
+
+class LocalStorageAPI {
+    constructor(storageKey) {
+        this.storageKey = storageKey;
+    }
+
+    async getAllData() {
+        const data = localStorage.getItem(this.storageKey);
+        if (data) {
+            return JSON.parse(data);
+        }
+        return null;
+    }
+
+    async saveData(records, lastSignInDate) {
+        const data = {
+            records: records,
+            lastSignInDate: lastSignInDate
+        };
+        localStorage.setItem(this.storageKey, JSON.stringify(data));
+        return true;
+    }
+}
+
 class GiteeAPI {
     constructor(token, owner, repo, path) {
         this.token = token;
@@ -111,12 +139,30 @@ class GiteeAPI {
     }
 }
 
-const giteeAPI = new GiteeAPI(
+const giteeAPIForData = new GiteeAPI(
     'ed5ad25f8f26a4915df21997fbf4c4b6',
     'philipding',
     'json-storage',
     'points-bonus.json'
 );
+
+const localStorageAPI = new LocalStorageAPI('points-bonus-data');
+
+const giteeAPI = {
+    async getAllData() {
+        if (isLocalhost()) {
+            return await localStorageAPI.getAllData();
+        }
+        return await giteeAPIForData.getAllData();
+    },
+
+    async saveData(records, lastSignInDate) {
+        if (isLocalhost()) {
+            return await localStorageAPI.saveData(records, lastSignInDate);
+        }
+        return await giteeAPIForData.saveData(records, lastSignInDate);
+    }
+};
 
 const customRewardsAPI = new GiteeAPI(
     'ed5ad25f8f26a4915df21997fbf4c4b6',
@@ -155,4 +201,18 @@ async function fetchTasks() {
 async function fetchRewards() {
     const { content: customRewards } = await customRewardsAPI.getFileContent();
     return customRewards || [];
+}
+
+async function fetchQuestions() {
+    try {
+        const response = await fetch('questions.json');
+        if (response.ok) {
+            const data = await response.json();
+            return data || [];
+        }
+        return [];
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        return [];
+    }
 }
