@@ -41,6 +41,32 @@ class PointsApp {
         return this.records.reduce((total, record) => total + record.points, 0);
     }
 
+    calculateTodayPoints() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return this.records.reduce((total, record) => {
+            if (record.type !== RecordType.TASK) {
+                return total;
+            }
+            const recordDate = new Date(record.date);
+            recordDate.setHours(0, 0, 0, 0);
+            if (recordDate.getTime() === today.getTime()) {
+                return total + record.points;
+            }
+            return total;
+        }, 0);
+    }
+
+    calculateTotalTaskPoints() {
+        return this.tasks.reduce((total, task) => {
+            if (task.points > 0) {
+                const maxTimes = task.maxDailyTimes || 1;
+                return total + (task.points * maxTimes);
+            }
+            return total;
+        }, 0);
+    }
+
     updatePointsDisplay() {
         const totalPoints = this.calculateTotalPoints();
         const totalPointsEl = document.getElementById('totalPoints');
@@ -577,6 +603,13 @@ class PointsApp {
     renderTasks() {
         const taskList = document.getElementById('taskList');
         taskList.innerHTML = '';
+
+        const todayPoints = this.calculateTodayPoints();
+        const totalTaskPoints = this.calculateTotalTaskPoints();
+        const todayPointsDisplay = document.getElementById('todayPointsDisplay');
+        if (todayPointsDisplay) {
+            todayPointsDisplay.textContent = `${todayPoints}/${totalTaskPoints}`;
+        }
 
         if (this.tasks.length === 0) {
             taskList.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">暂无可用任务</p>';
