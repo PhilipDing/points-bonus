@@ -212,20 +212,6 @@ async function fetchRewards() {
 }
 
 async function fetchQuestions() {
-    if (isLocalhost()) {
-        try {
-            const response = await fetch('questions.json');
-            if (response.ok) {
-                const data = await response.json();
-                return data || [];
-            }
-            return [];
-        } catch (error) {
-            console.error('Error fetching questions:', error);
-            return [];
-        }
-    } else {
-        const { content: questions } = await customQuestionsAPI.getFileContent();
-        return questions || [];
-    }
+    const { content: questions } = await customQuestionsAPI.getFileContent();
+    return questions || [];
 }
