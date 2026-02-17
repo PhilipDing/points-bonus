@@ -115,6 +115,46 @@
             color: white;
         }
 
+        .btn-quiz-easy {
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            color: white;
+        }
+
+        .btn-quiz-medium {
+            background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+            color: white;
+        }
+
+        .btn-quiz-hard {
+            background: linear-gradient(135deg, #f44336 0%, #E57373 100%);
+            color: white;
+        }
+
+        .btn-tasks {
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            color: white;
+        }
+
+        .btn-rewards {
+            background: linear-gradient(135deg, #FF69B4 0%, #FFB6C1 100%);
+            color: white;
+        }
+
+        .btn-home-quiz {
+            background: linear-gradient(135deg, #2196F3 0%, #64B5F6 100%);
+            color: white;
+        }
+
+        .btn-home-vouchers {
+            background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+            color: white;
+        }
+
+        .btn-home-records {
+            background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%);
+            color: white;
+        }
+
         .btn-back {
             background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
             color: white;
@@ -378,16 +418,19 @@
 
             <div class="card">
                 <h3>🎯 去玩什么呢？</h3>
-                <button class="btn btn-primary" onclick="showPage('tasks')">
+                <button class="btn btn-tasks" onclick="showPage('tasks')">
                     📋 任务列表
                 </button>
-                <button class="btn btn-secondary" onclick="showPage('rewards')">
+                <button class="btn btn-rewards" onclick="showPage('rewards')">
                     🎁 积分兑换
                 </button>
-                <button class="btn btn-info" onclick="showPage('vouchers')">
+                <button class="btn btn-home-quiz" onclick="showPage('quiz')">
+                    🧠 问答挑战赛
+                </button>
+                <button class="btn btn-home-vouchers" onclick="showPage('vouchers')">
                     🎫 我的卡券
                 </button>
-                <button class="btn btn-info" onclick="showPage('records')">
+                <button class="btn btn-home-records" onclick="showPage('records')">
                     📝 积分记录
                 </button>
             </div>
@@ -469,6 +512,60 @@
             </div>
 
             <div id="rewardList"></div>
+        </div>
+
+        <div class="page" id="quiz">
+            <button class="btn btn-back" onclick="showPage('home')">
+                ⬅️ 返回首页
+            </button>
+
+            <div class="header">
+                <h1>🧠 问答挑战赛</h1>
+            </div>
+
+            <div id="quizStart" style="text-align: center;">
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3 style="color: #FF69B4; margin-bottom: 15px;">🎯 选一个难度开始挑战吧！</h3>
+                    <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                        一共有2道题目哦～<br>
+                        ✅ 答对1题：积分不增不减<br>
+                        ✅ 答对2题：积分翻倍赚！<br>
+                        ❌ 全答错：积分就没了哦
+                    </p>
+                    <div id="quizStatus" style="margin-bottom: 15px; padding: 10px; border-radius: 10px; display: none;"></div>
+                    <button class="btn btn-quiz-easy" onclick="startQuiz(1)" style="margin-bottom: 10px;">
+                        🌟 简单模式（用 1 积分）
+                    </button>
+                    <button class="btn btn-quiz-medium" onclick="startQuiz(2)" style="margin-bottom: 10px;">
+                        ⭐ 中等模式（用 2 积分）
+                    </button>
+                    <button class="btn btn-quiz-hard" onclick="startQuiz(5)">
+                        🔥 困难模式（用 5 积分）
+                    </button>
+                </div>
+            </div>
+
+            <div id="quizContent" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span id="quizProgress" style="font-weight: bold; color: #FF69B4;">问答挑战</span>
+                    <span id="quizBet" style="color: #4CAF50;">用了 1 积分</span>
+                </div>
+                <div id="quizQuestions"></div>
+                <button class="btn btn-primary" id="submitQuizBtn" onclick="submitQuiz()" style="margin-top: 15px;">
+                    ✨ 提交答案
+                </button>
+            </div>
+
+            <div id="quizResult" style="display: none; text-align: center;">
+                <div class="card">
+                    <div id="resultEmoji" style="font-size: 60px; margin-bottom: 15px;"></div>
+                    <div id="resultText" style="font-size: 20px; font-weight: bold; margin-bottom: 10px;"></div>
+                    <div id="resultScore" style="font-size: 16px; color: #666; margin-bottom: 20px;"></div>
+                    <button class="btn btn-primary" id="resultActionBtn" onclick="resetQuiz()">
+                        📋 看看正确答案
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="page" id="vouchers">

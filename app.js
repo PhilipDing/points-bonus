@@ -10,6 +10,8 @@ class PointsApp {
         this.usingVoucherDate = null;
         this.addingReward = false;
         this.addingTask = false;
+        this.questions = [];
+        this.currentQuiz = null;
         this.init();
     }
 
@@ -148,6 +150,44 @@ class PointsApp {
             this.renderVouchers();
         } else if (pageId === 'records') {
             this.renderRecords();
+        } else if (pageId === 'quiz') {
+            this.loadQuestions();
+            this.initQuizPage();
+        }
+    }
+
+    initQuizPage() {
+        const todayRecord = this.getTodayQuizRecord();
+
+        if (todayRecord && todayRecord.finished) {
+            document.getElementById('quizStart').style.display = 'none';
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('quizResult').style.display = 'block';
+            this.showQuizResult(todayRecord.correctCount, todayRecord.betPoints, todayRecord.correctCount * todayRecord.betPoints);
+        } else if (todayRecord && !todayRecord.finished) {
+            document.getElementById('quizStart').style.display = 'none';
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('quizResult').style.display = 'none';
+            this.showQuizContinue(todayRecord);
+        } else {
+            document.getElementById('quizStart').style.display = 'block';
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('quizResult').style.display = 'none';
+            this.updateQuizStatus();
+        }
+    }
+
+    updateQuizStatus() {
+        const todayRecord = this.getTodayQuizRecord();
+        const statusEl = document.getElementById('quizStatus');
+        if (todayRecord && todayRecord.finished) {
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#FFF3E0';
+            statusEl.style.color = '#E65100';
+            const earnedPoints = todayRecord.correctCount * todayRecord.betPoints;
+            statusEl.innerHTML = `✅ 今天已经挑战过啦！<br>用了 ${todayRecord.betPoints} 积分，答对 ${todayRecord.correctCount} 题，赚回 ${earnedPoints} 积分<br>点击下面按钮可以看题目和答案哦～`;
+        } else {
+            statusEl.style.display = 'none';
         }
     }
 
@@ -286,6 +326,13 @@ class PointsApp {
                     break;
                 case RecordType.MANUAL:
                     actionText = `📝 ${record.reason || '手动调整'}`;
+                    break;
+                case RecordType.QUIZ:
+                    if (record.points < 0) {
+                        actionText = `🧠 问答挑战（参加）`;
+                    } else {
+                        actionText = `🧠 ${record.reason || '问答挑战奖励'}`;
+                    }
                     break;
             }
 
@@ -678,6 +725,349 @@ class PointsApp {
         reasonInput.value = '';
         this.showMessage(`<span class="emoji-large">✅</span>成功${points > 0 ? '添加' : '扣除'} ${Math.abs(points)} 积分！`);
     }
+
+    async loadQuestions() {
+        this.questions = await fetchQuestions();
+    }
+
+    getTodayQuizRecord() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return this.records.find(record => {
+            if (record.type !== RecordType.QUIZ) return false;
+            const recordDate = new Date(record.date);
+            recordDate.setHours(0, 0, 0, 0);
+            return recordDate.getTime() === today.getTime();
+        });
+    }
+
+    getAnsweredCorrectlyQuestions() {
+        const answeredCorrectly = [];
+        this.records.forEach(record => {
+            if (record.type === RecordType.QUIZ && record.questionResults) {
+                record.questionResults.forEach(result => {
+                    if (result.correct) {
+                        answeredCorrectly.push(result.questionCode);
+                    }
+                });
+            }
+        });
+        return answeredCorrectly;
+    }
+
+    async startQuiz(betPoints) {
+        const todayRecord = this.getTodayQuizRecord();
+
+        if (todayRecord) {
+            if (todayRecord.finished) {
+                this.showQuizResult(todayRecord.correctCount, todayRecord.betPoints, todayRecord.correctCount * todayRecord.betPoints);
+            } else {
+                this.showQuizContinue(todayRecord);
+            }
+            return;
+        }
+
+        const totalPoints = this.calculateTotalPoints();
+        if (totalPoints < betPoints) {
+            this.showMessage(`<span class="emoji-large">😢</span>积分不够哦！需要 ${betPoints} 积分`);
+            return;
+        }
+
+        if (this.questions.length < 2) {
+            await this.loadQuestions();
+        }
+
+        const answeredCorrectly = this.getAnsweredCorrectlyQuestions();
+        const availableQuestions = this.questions.filter(q => !answeredCorrectly.includes(q.code));
+
+        if (availableQuestions.length < 2) {
+            this.showMessage('<span class="emoji-large">⚠️</span>题目不足，无法开始挑战');
+            return;
+        }
+
+        const shuffled = [...availableQuestions].sort(() => Math.random() - 0.5);
+        const selectedQuestions = shuffled.slice(0, 2);
+
+        const record = {
+            type: RecordType.QUIZ,
+            points: -betPoints,
+            date: new Date().toISOString(),
+            betPoints: betPoints,
+            questions: selectedQuestions,
+            questionResults: [],
+            correctCount: 0,
+            finished: false
+        };
+        this.records.push(record);
+        await this.saveToStorage();
+        this.updatePointsDisplay();
+
+        this.currentQuiz = {
+            betPoints: betPoints,
+            questions: selectedQuestions,
+            answers: [null, null],
+            isReview: false,
+            recordDate: record.date
+        };
+
+        document.getElementById('quizStart').style.display = 'none';
+        document.getElementById('quizContent').style.display = 'block';
+        document.getElementById('quizResult').style.display = 'none';
+        document.getElementById('submitQuizBtn').style.display = 'block';
+
+        this.renderQuizQuestions();
+    }
+
+    showQuizContinue(record) {
+        this.currentQuiz = {
+            betPoints: record.betPoints,
+            questions: record.questions,
+            answers: [null, null],
+            isReview: false,
+            recordDate: record.date
+        };
+
+        document.getElementById('quizStart').style.display = 'none';
+        document.getElementById('quizContent').style.display = 'block';
+        document.getElementById('quizResult').style.display = 'none';
+        document.getElementById('submitQuizBtn').style.display = 'block';
+
+        this.renderQuizQuestions();
+    }
+
+    renderQuizQuestions() {
+        const quiz = this.currentQuiz;
+        document.getElementById('quizBet').textContent = `用了 ${quiz.betPoints} 积分`;
+
+        const container = document.getElementById('quizQuestions');
+        container.innerHTML = '';
+
+        quiz.questions.forEach((question, qIndex) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.marginBottom = '15px';
+
+            const questionTitle = document.createElement('div');
+            questionTitle.style.cssText = 'font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; line-height: 1.5;';
+            questionTitle.textContent = `第${qIndex + 1}题：${question.question}`;
+            card.appendChild(questionTitle);
+
+            const choicesDiv = document.createElement('div');
+            choicesDiv.id = `choices-${qIndex}`;
+
+            question.choices.forEach((choice, cIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-info';
+                btn.style.cssText = 'margin-bottom: 10px; background: linear-gradient(135deg, #87CEEB 0%, #4FC3F7 100%);';
+                btn.textContent = choice;
+                btn.onclick = () => this.selectAnswer(qIndex, choice, btn);
+                choicesDiv.appendChild(btn);
+            });
+
+            card.appendChild(choicesDiv);
+            container.appendChild(card);
+        });
+    }
+
+    selectAnswer(questionIndex, choice, selectedBtn) {
+        const quiz = this.currentQuiz;
+        quiz.answers[questionIndex] = choice.charAt(0);
+
+        const choicesDiv = document.getElementById(`choices-${questionIndex}`);
+        const buttons = choicesDiv.querySelectorAll('.btn');
+        buttons.forEach(btn => {
+            btn.style.background = 'linear-gradient(135deg, #87CEEB 0%, #4FC3F7 100%)';
+            btn.style.opacity = '0.6';
+        });
+        selectedBtn.style.background = 'linear-gradient(135deg, #2196F3 0%, #64B5F6 100%)';
+        selectedBtn.style.opacity = '1';
+    }
+
+    async submitQuiz() {
+        const quiz = this.currentQuiz;
+
+        if (quiz.answers[0] === null || quiz.answers[1] === null) {
+            this.showMessage('<span class="emoji-large">⚠️</span>要把两道题都答完哦！');
+            return;
+        }
+
+        document.getElementById('submitQuizBtn').style.display = 'none';
+
+        let correctCount = 0;
+        const questionResults = [];
+        quiz.questions.forEach((question, qIndex) => {
+            const choicesDiv = document.getElementById(`choices-${qIndex}`);
+            const buttons = choicesDiv.querySelectorAll('.btn');
+            const userAnswer = quiz.answers[qIndex];
+
+            buttons.forEach(btn => {
+                const btnLetter = btn.textContent.charAt(0);
+                if (btnLetter === question.answer) {
+                    btn.style.background = 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)';
+                    btn.style.opacity = '1';
+                } else if (btnLetter === userAnswer && userAnswer !== question.answer) {
+                    btn.style.background = 'linear-gradient(135deg, #f44336 0%, #E57373 100%)';
+                    btn.style.opacity = '1';
+                }
+            });
+
+            const isCorrect = userAnswer === question.answer;
+            if (isCorrect) {
+                correctCount++;
+            }
+
+            questionResults.push({
+                questionCode: question.code,
+                question: question.question,
+                userAnswer: userAnswer,
+                correctAnswer: question.answer,
+                correct: isCorrect
+            });
+        });
+
+        const betPoints = quiz.betPoints;
+        let earnedPoints = 0;
+        if (correctCount === 1) {
+            earnedPoints = betPoints;
+        } else if (correctCount === 2) {
+            earnedPoints = betPoints * 2;
+        }
+
+        const recordIndex = this.records.findIndex(r => r.date === quiz.recordDate);
+        if (recordIndex !== -1) {
+            this.records[recordIndex].correctCount = correctCount;
+            this.records[recordIndex].questionResults = questionResults;
+            this.records[recordIndex].finished = true;
+        }
+
+        if (earnedPoints > 0) {
+            const rewardRecord = {
+                type: RecordType.QUIZ,
+                points: earnedPoints,
+                date: new Date().toISOString(),
+                reason: `问答挑战奖励（答对${correctCount}题）`
+            };
+            this.records.push(rewardRecord);
+        }
+
+        await this.saveToStorage();
+        this.updatePointsDisplay();
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        this.showQuizResult(correctCount, betPoints, earnedPoints);
+    }
+
+    showQuizResult(correctCount, betPoints, earnedPoints) {
+        document.getElementById('quizStart').style.display = 'none';
+        document.getElementById('quizContent').style.display = 'none';
+        document.getElementById('quizResult').style.display = 'block';
+
+        const resultEmoji = document.getElementById('resultEmoji');
+        const resultText = document.getElementById('resultText');
+        const resultScore = document.getElementById('resultScore');
+        const resultActionBtn = document.getElementById('resultActionBtn');
+
+        if (correctCount === 2) {
+            resultEmoji.textContent = '🎉';
+            resultText.textContent = '太厉害了！全对！';
+            resultScore.innerHTML = `用了 ${betPoints} 积分，赚回 ${earnedPoints} 积分<br>净赚 <span style="color: #4CAF50; font-weight: bold;">+${earnedPoints - betPoints}</span> 积分！`;
+        } else if (correctCount === 1) {
+            resultEmoji.textContent = '😊';
+            resultText.textContent = '不错哦！答对一半！';
+            resultScore.innerHTML = `用了 ${betPoints} 积分，赚回 ${earnedPoints} 积分<br>积分不多不少～`;
+        } else {
+            resultEmoji.textContent = '😢';
+            resultText.textContent = '没关系，下次加油！';
+            resultScore.innerHTML = `用了 ${betPoints} 积分<br>可惜没答对，积分没了～`;
+        }
+
+        resultActionBtn.textContent = '📋 看看正确答案';
+        resultActionBtn.onclick = () => this.showQuizReview(this.getTodayQuizRecord());
+    }
+
+    showQuizReview(record) {
+        this.currentQuiz = {
+            betPoints: record.betPoints,
+            questions: record.questions,
+            correctCount: record.correctCount,
+            isReview: true
+        };
+
+        document.getElementById('quizStart').style.display = 'none';
+        document.getElementById('quizContent').style.display = 'block';
+        document.getElementById('quizResult').style.display = 'none';
+        document.getElementById('submitQuizBtn').style.display = 'none';
+
+        this.renderQuizQuestionsReview();
+    }
+
+    renderQuizQuestionsReview() {
+        const quiz = this.currentQuiz;
+        document.getElementById('quizBet').textContent = `用了 ${quiz.betPoints} 积分（回顾模式）`;
+
+        const container = document.getElementById('quizQuestions');
+        container.innerHTML = '';
+
+        quiz.questions.forEach((question, qIndex) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.marginBottom = '15px';
+
+            const questionTitle = document.createElement('div');
+            questionTitle.style.cssText = 'font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; line-height: 1.5;';
+            questionTitle.textContent = `第${qIndex + 1}题：${question.question}`;
+            card.appendChild(questionTitle);
+
+            const choicesDiv = document.createElement('div');
+
+            question.choices.forEach((choice, cIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-info';
+                btn.style.marginBottom = '10px';
+                const btnLetter = choice.charAt(0);
+                if (btnLetter === question.answer) {
+                    btn.style.background = 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)';
+                } else {
+                    btn.style.background = 'linear-gradient(135deg, #f44336 0%, #E57373 100%)';
+                }
+                btn.textContent = choice;
+                btn.disabled = true;
+                choicesDiv.appendChild(btn);
+            });
+
+            card.appendChild(choicesDiv);
+            container.appendChild(card);
+        });
+
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'card';
+        resultDiv.style.textAlign = 'center';
+        resultDiv.innerHTML = `
+            <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">📋 今天的挑战结果</div>
+            <div>答对 ${quiz.correctCount} 题，赚回 ${quiz.correctCount * quiz.betPoints} 积分</div>
+        `;
+        container.appendChild(resultDiv);
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-primary';
+        backBtn.style.marginTop = '15px';
+        backBtn.textContent = '⬅️ 返回结果';
+        backBtn.onclick = () => this.resetQuiz();
+        container.appendChild(backBtn);
+    }
+
+    resetQuiz() {
+        this.currentQuiz = null;
+        const todayRecord = this.getTodayQuizRecord();
+        if (todayRecord && todayRecord.finished) {
+            this.showQuizResult(todayRecord.correctCount, todayRecord.betPoints, todayRecord.correctCount * todayRecord.betPoints);
+        } else {
+            document.getElementById('quizStart').style.display = 'block';
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('quizResult').style.display = 'none';
+            this.updateQuizStatus();
+        }
+    }
 }
 
 let app;
@@ -731,4 +1121,16 @@ function toggleAddTask() {
 
 function addCustomTask() {
     app.addCustomTask();
+}
+
+function startQuiz(betPoints) {
+    app.startQuiz(betPoints);
+}
+
+function submitQuiz() {
+    app.submitQuiz();
+}
+
+function resetQuiz() {
+    app.resetQuiz();
 }

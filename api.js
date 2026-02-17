@@ -2,7 +2,8 @@ const RecordType = {
     SIGN_IN: 'sign_in',
     TASK: 'task',
     REWARD: 'reward',
-    MANUAL: 'manual'
+    MANUAL: 'manual',
+    QUIZ: 'quiz'
 };
 
 function isLocalhost() {
@@ -178,6 +179,13 @@ const customTasksAPI = new GiteeAPI(
     'points-bonus-tasks.json'
 );
 
+const customQuestionsAPI = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-questions.json'
+);
+
 async function fetchLocalJson(filename) {
     try {
         const response = await fetch(filename);
@@ -204,15 +212,20 @@ async function fetchRewards() {
 }
 
 async function fetchQuestions() {
-    try {
-        const response = await fetch('questions.json');
-        if (response.ok) {
-            const data = await response.json();
-            return data || [];
+    if (isLocalhost()) {
+        try {
+            const response = await fetch('questions.json');
+            if (response.ok) {
+                const data = await response.json();
+                return data || [];
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+            return [];
         }
-        return [];
-    } catch (error) {
-        console.error('Error fetching questions:', error);
-        return [];
+    } else {
+        const { content: questions } = await customQuestionsAPI.getFileContent();
+        return questions || [];
     }
 }
