@@ -3,7 +3,8 @@ const RecordType = {
     TASK: 'task',
     REWARD: 'reward',
     MANUAL: 'manual',
-    QUIZ: 'quiz'
+    QUIZ: 'quiz',
+    LOTTERY: 'lottery'
 };
 
 function isLocalhost() {

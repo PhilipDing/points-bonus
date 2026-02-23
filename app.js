@@ -12,6 +12,9 @@ class PointsApp {
         this.addingTask = false;
         this.questions = [];
         this.currentQuiz = null;
+        this.lotteryCards = [];
+        this.lotteryParticipated = false;
+        this.lotteryRevealed = false;
         this.init();
     }
 
@@ -179,6 +182,8 @@ class PointsApp {
         } else if (pageId === 'quiz') {
             this.loadQuestions();
             this.initQuizPage();
+        } else if (pageId === 'lottery') {
+            this.initLotteryPage();
         }
     }
 
@@ -264,6 +269,7 @@ class PointsApp {
                     name: reward.name,
                     points: reward.points,
                     maxDailyTimes: reward.maxDailyTimes,
+                    availableForLottery: reward.availableForLottery || false,
                     redeemedCount: 0
                 }));
 
@@ -360,6 +366,9 @@ class PointsApp {
                         actionText = `🧠 ${record.reason || '问答挑战奖励'}`;
                     }
                     break;
+                case RecordType.LOTTERY:
+                    actionText = `🎰 幸运抽奖`;
+                    break;
             }
 
             const date = new Date(record.date);
@@ -453,10 +462,12 @@ class PointsApp {
         const nameInput = document.getElementById('rewardName');
         const pointsInput = document.getElementById('rewardPoints');
         const maxDailyTimesInput = document.getElementById('rewardMaxDailyTimes');
+        const availableForLotteryInput = document.getElementById('rewardAvailableForLottery');
 
         const name = nameInput.value.trim();
         const points = parseInt(pointsInput.value);
         const maxDailyTimes = maxDailyTimesInput.value ? parseInt(maxDailyTimesInput.value) : null;
+        const availableForLottery = availableForLotteryInput.checked;
 
         if (!name) {
             this.showMessage('<span class="emoji-large">⚠️</span>请输入奖品名称！');
@@ -477,7 +488,8 @@ class PointsApp {
                 code: `CUSTOM_${Date.now()}`,
                 name: name,
                 points: points,
-                maxDailyTimes: maxDailyTimes
+                maxDailyTimes: maxDailyTimes,
+                availableForLottery: availableForLottery
             };
 
             const updatedRewards = [...(existingRewards || []), newReward];
@@ -487,6 +499,7 @@ class PointsApp {
                 nameInput.value = '';
                 pointsInput.value = '';
                 maxDailyTimesInput.value = '';
+                availableForLotteryInput.checked = false;
                 this.toggleAddReward();
 
                 await this.loadRewards();
@@ -1101,6 +1114,206 @@ class PointsApp {
             this.updateQuizStatus();
         }
     }
+
+    async startLottery() {
+        const totalPoints = this.calculateTotalPoints();
+        if (totalPoints < 30) {
+            this.showMessage('<span class="emoji-large">❌</span>积分不足，需要30积分才能参与抽奖！');
+            return;
+        }
+
+        this.lotteryParticipated = true;
+        this.lotteryRevealed = false;
+        this.lotteryCards = this.rewards.filter(reward => reward.availableForLottery).map(reward => ({
+            ...reward,
+            revealed: false
+        }));
+
+        if (this.lotteryCards.length === 0) {
+            this.showMessage('<span class="emoji-large">⚠️</span>暂无可通过抽奖获得的奖品！');
+            return;
+        }
+
+        this.shuffleLotteryCards();
+
+        const record = {
+            type: RecordType.LOTTERY,
+            points: -30,
+            date: new Date().toISOString(),
+            reason: '参与抽奖',
+            lotteryCards: this.lotteryCards,
+            revealed: false
+        };
+
+        this.records.push(record);
+        await this.saveToStorage();
+        this.updatePointsDisplay();
+
+        document.getElementById('lotteryStart').style.display = 'none';
+        document.getElementById('lotteryPlaying').style.display = 'block';
+        document.getElementById('lotteryResult').style.display = 'none';
+
+        this.renderLotteryCards();
+    }
+
+    shuffleLotteryCards() {
+        for (let i = this.lotteryCards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.lotteryCards[i], this.lotteryCards[j]] = [this.lotteryCards[j], this.lotteryCards[i]];
+        }
+    }
+
+    renderLotteryCards() {
+        const container = document.getElementById('lotteryShuffledCards');
+        container.innerHTML = '';
+
+        this.lotteryCards.forEach((card, index) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'lottery-card';
+            cardEl.id = `lottery-card-${index}`;
+            cardEl.onclick = () => this.flipLotteryCard(index);
+
+            const inner = document.createElement('div');
+            inner.className = 'lottery-card-inner';
+
+            const front = document.createElement('div');
+            front.className = 'lottery-card-front';
+
+            const back = document.createElement('div');
+            back.className = 'lottery-card-back';
+            back.innerHTML = `
+                <div class="reward-name">${card.name}</div>
+                <div class="reward-points">${card.points} 积分</div>
+            `;
+
+            inner.appendChild(front);
+            inner.appendChild(back);
+            cardEl.appendChild(inner);
+            container.appendChild(cardEl);
+        });
+    }
+
+    async flipLotteryCard(index) {
+        if (this.lotteryRevealed) {
+            return;
+        }
+
+        const cardEl = document.getElementById(`lottery-card-${index}`);
+        if (cardEl.classList.contains('flipped')) {
+            return;
+        }
+
+        cardEl.classList.add('flipped');
+        this.lotteryRevealed = true;
+
+        const reward = this.lotteryCards[index];
+        const voucherRecord = {
+            type: RecordType.REWARD,
+            points: 0,
+            date: new Date().toISOString(),
+            rewardCode: reward.code,
+            rewardName: reward.name,
+            used: false
+        };
+
+        this.records.push(voucherRecord);
+
+        const lotteryRecord = this.records.find(r => r.type === RecordType.LOTTERY && !r.revealed);
+        if (lotteryRecord) {
+            lotteryRecord.revealed = true;
+            lotteryRecord.selectedReward = reward;
+        }
+
+        await this.saveToStorage();
+
+        document.getElementById('lotteryResultEmoji').textContent = '🎉';
+        document.getElementById('lotteryResultText').textContent = '恭喜你获得奖品！';
+        document.getElementById('lotteryResultReward').textContent = `${reward.name}（${reward.points} 积分）`;
+
+        setTimeout(() => {
+            document.getElementById('lotteryPlaying').style.display = 'none';
+            document.getElementById('lotteryResult').style.display = 'block';
+        }, 1000);
+    }
+
+    resetLottery() {
+        this.lotteryParticipated = false;
+        this.lotteryRevealed = false;
+        this.lotteryCards = [];
+
+        document.getElementById('lotteryStart').style.display = 'block';
+        document.getElementById('lotteryPlaying').style.display = 'none';
+        document.getElementById('lotteryResult').style.display = 'none';
+    }
+
+    initLotteryPage() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const lotteryRecord = this.records.find(r => {
+            const recordDate = new Date(r.date);
+            recordDate.setHours(0, 0, 0, 0);
+            return r.type === RecordType.LOTTERY && recordDate.getTime() === today.getTime();
+        });
+
+        if (lotteryRecord && !lotteryRecord.revealed) {
+            this.lotteryParticipated = true;
+            this.lotteryRevealed = false;
+            this.lotteryCards = lotteryRecord.lotteryCards;
+
+            document.getElementById('lotteryStart').style.display = 'none';
+            document.getElementById('lotteryPlaying').style.display = 'block';
+            document.getElementById('lotteryResult').style.display = 'none';
+
+            this.renderLotteryCards();
+        } else if (lotteryRecord && lotteryRecord.revealed) {
+            document.getElementById('lotteryStart').style.display = 'none';
+            document.getElementById('lotteryPlaying').style.display = 'none';
+            document.getElementById('lotteryResult').style.display = 'block';
+
+            const reward = lotteryRecord.selectedReward;
+            document.getElementById('lotteryResultEmoji').textContent = '🎉';
+            document.getElementById('lotteryResultText').textContent = '恭喜你获得奖品！';
+            document.getElementById('lotteryResultReward').textContent = `${reward.name}（${reward.points} 积分）`;
+        } else {
+            const container = document.getElementById('lotteryCards');
+            container.innerHTML = '';
+            console.log('=>this.rewards', this.rewards)
+            const lotteryRewards = this.rewards.filter(reward => reward.availableForLottery);
+
+            if (lotteryRewards.length === 0) {
+                container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;min-height:200px;grid-column:1/-1;"><p style="text-align:center;color:#999;padding:20px;">暂无可通过抽奖获得的奖品</p></div>';
+                return;
+            }
+
+            lotteryRewards.forEach((reward, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'lottery-card flipped';
+
+                const inner = document.createElement('div');
+                inner.className = 'lottery-card-inner';
+
+                const front = document.createElement('div');
+                front.className = 'lottery-card-front';
+
+                const back = document.createElement('div');
+                back.className = 'lottery-card-back';
+                back.innerHTML = `
+                    <div class="reward-name">${reward.name}</div>
+                    <div class="reward-points">${reward.points} 积分</div>
+                `;
+
+                inner.appendChild(front);
+                inner.appendChild(back);
+                cardEl.appendChild(inner);
+                container.appendChild(cardEl);
+            });
+
+            document.getElementById('lotteryStart').style.display = 'block';
+            document.getElementById('lotteryPlaying').style.display = 'none';
+            document.getElementById('lotteryResult').style.display = 'none';
+        }
+    }
 }
 
 let app;
@@ -1166,4 +1379,16 @@ function submitQuiz() {
 
 function resetQuiz() {
     app.resetQuiz();
+}
+
+function startLottery() {
+    app.startLottery();
+}
+
+function flipLotteryCard(index) {
+    app.flipLotteryCard(index);
+}
+
+function resetLottery() {
+    app.resetLottery();
 }

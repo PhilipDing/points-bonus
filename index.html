@@ -34,6 +34,9 @@
                 <button class="btn btn-home-quiz" onclick="showPage('quiz')">
                     🧠 问答挑战赛
                 </button>
+                <button class="btn btn-home-lottery" onclick="showPage('lottery')">
+                    🎰 幸运抽奖
+                </button>
                 <button class="btn btn-home-vouchers" onclick="showPage('vouchers')">
                     🎫 我的卡券
                 </button>
@@ -112,6 +115,12 @@
                            style="width: 100%; padding: 12px; border: 2px solid #ddd;
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
                 </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="rewardAvailableForLottery" style="margin-right: 8px; width: 18px; height: 18px;">
+                        <span style="font-size: 14px; color: #666;">可通过抽奖获得</span>
+                    </label>
+                </div>
                 <button class="btn btn-primary" id="addRewardBtn" onclick="addCustomReward()">
                     <span class="btn-text">确认添加</span>
                     <span class="btn-loading" style="display: none;">进行中...</span>
@@ -170,6 +179,48 @@
                     <div id="resultScore" style="font-size: 16px; color: #666; margin-bottom: 20px;"></div>
                     <button class="btn btn-primary" id="resultActionBtn" onclick="resetQuiz()">
                         📋 看看正确答案
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="lottery">
+            <button class="btn btn-back" onclick="showPage('home')">
+                ⬅️ 返回首页
+            </button>
+
+            <div class="header">
+                <h1>🎰 幸运抽奖</h1>
+            </div>
+
+            <div id="lotteryStart" style="text-align: center;">
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3 style="color: #FF69B4; margin-bottom: 15px;">🎁 消耗 30 积分 即可参与</h3>
+                    <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                        点击卡片翻转，获取您的专属奖励
+                    </p>
+                    <button class="btn btn-primary" id="lotteryParticipateBtn" onclick="startLottery()" style="margin-bottom: 10px;">
+                        🎰 参与抽奖（30 积分）
+                    </button>
+                </div>
+                <div id="lotteryCards" class="lottery-cards"></div>
+            </div>
+
+            <div id="lotteryPlaying" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-weight: bold; color: #FF69B4;">🎰 幸运抽奖</span>
+                    <span style="color: #4CAF50;">已消费 30 积分</span>
+                </div>
+                <div id="lotteryShuffledCards" class="lottery-cards"></div>
+            </div>
+
+            <div id="lotteryResult" style="display: none; text-align: center;">
+                <div class="card">
+                    <div id="lotteryResultEmoji" style="font-size: 60px; margin-bottom: 15px;"></div>
+                    <div id="lotteryResultText" style="font-size: 20px; font-weight: bold; margin-bottom: 10px;"></div>
+                    <div id="lotteryResultReward" style="font-size: 16px; color: #666; margin-bottom: 20px;"></div>
+                    <button class="btn btn-primary" onclick="resetLottery()">
+                        🔄 再来一次
                     </button>
                 </div>
             </div>
