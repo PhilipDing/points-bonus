@@ -1082,6 +1082,14 @@ class PointsApp {
             });
 
             card.appendChild(choicesDiv);
+
+            if (question.explanation) {
+                const explanationDiv = document.createElement('div');
+                explanationDiv.style.cssText = 'margin-top: 15px; padding: 12px; background: #FFF3E0; border-radius: 8px; border-left: 4px solid #FF9800; font-size: 14px; line-height: 1.6; color: #666;';
+                explanationDiv.innerHTML = `<strong style="color: #FF9800;">💡 解析：</strong>${question.explanation}`;
+                card.appendChild(explanationDiv);
+            }
+
             container.appendChild(card);
         });
 
