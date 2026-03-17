@@ -483,7 +483,9 @@ class PointsApp {
         this.setAddRewardButtonLoading(true);
 
         try {
-            const { content: existingRewards, sha } = await customRewardsAPI.getFileContent();
+            const user = getCurrentUser();
+            const rewardsAPI = user === 'mom' ? customRewardsAPIMM : customRewardsAPI;
+            const { content: existingRewards, sha } = await rewardsAPI.getFileContent();
             const newReward = {
                 code: `CUSTOM_${Date.now()}`,
                 name: name,
@@ -493,7 +495,7 @@ class PointsApp {
             };
 
             const updatedRewards = [...(existingRewards || []), newReward];
-            const result = await customRewardsAPI.updateFileContent(updatedRewards, sha);
+            const result = await rewardsAPI.updateFileContent(updatedRewards, sha);
 
             if (result.success) {
                 nameInput.value = '';
@@ -566,7 +568,9 @@ class PointsApp {
         this.setAddTaskButtonLoading(true);
 
         try {
-            const { content: existingTasks, sha } = await customTasksAPI.getFileContent();
+            const user = getCurrentUser();
+            const tasksAPI = user === 'mom' ? customTasksAPIMM : customTasksAPI;
+            const { content: existingTasks, sha } = await tasksAPI.getFileContent();
             const newTask = {
                 code: `CUSTOM_${Date.now()}`,
                 name: name,
@@ -575,7 +579,7 @@ class PointsApp {
             };
 
             const updatedTasks = [...(existingTasks || []), newTask];
-            const result = await customTasksAPI.updateFileContent(updatedTasks, sha);
+            const result = await tasksAPI.updateFileContent(updatedTasks, sha);
 
             if (result.success) {
                 nameInput.value = '';
@@ -1327,8 +1331,15 @@ class PointsApp {
 let app;
 
 async function initApp() {
-    app = new PointsApp();
-    await app.init();
+    const savedUser = localStorage.getItem('points-bonus-current-user');
+    if (!savedUser) {
+        showUserSelector();
+    } else {
+        getCurrentUser();
+        updateUserAvatar();
+        app = new PointsApp();
+        await app.init();
+    }
 }
 
 initApp();
@@ -1400,3 +1411,37 @@ function flipLotteryCard(index) {
 function resetLottery() {
     app.resetLottery();
 }
+
+function showUserSelector() {
+    document.getElementById('userSelector').classList.add('show');
+}
+
+async function selectUser(user) {
+    const userSelector = document.getElementById('userSelector');
+    userSelector.classList.remove('show');
+
+    setCurrentUser(user);
+    updateUserAvatar();
+
+    document.getElementById('loadingOverlay').style.display = 'block';
+
+    app = new PointsApp();
+    await app.init();
+}
+
+function updateUserAvatar() {
+    const user = getCurrentUser();
+    const avatarEl = document.getElementById('userAvatar');
+    const userInfoEl = document.getElementById('currentUserInfo');
+
+    if (avatarEl) {
+        avatarEl.textContent = user === 'mom' ? '👩' : '👶';
+    }
+
+    if (userInfoEl) {
+        userInfoEl.textContent = `当前用户：${user === 'mom' ? '妈妈' : '一宝'}`;
+    }
+}
+
+getCurrentUser();
+updateUserAvatar();

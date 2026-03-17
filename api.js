@@ -148,21 +148,47 @@ const giteeAPIForData = new GiteeAPI(
     'points-bonus.json'
 );
 
+const giteeAPIForDataMM = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-mm.json'
+);
+
 const localStorageAPI = new LocalStorageAPI('points-bonus-data');
+
+const localStorageAPIMM = new LocalStorageAPI('points-bonus-data-mm');
+
+let currentUser = 'baby';
+
+function setCurrentUser(user) {
+    currentUser = user;
+    localStorage.setItem('points-bonus-current-user', user);
+}
+
+function getCurrentUser() {
+    const savedUser = localStorage.getItem('points-bonus-current-user');
+    if (savedUser) {
+        currentUser = savedUser;
+    }
+    return currentUser;
+}
 
 const giteeAPI = {
     async getAllData() {
+        const user = getCurrentUser();
         if (isLocalhost()) {
-            return await localStorageAPI.getAllData();
+            return await (user === 'mom' ? localStorageAPIMM : localStorageAPI).getAllData();
         }
-        return await giteeAPIForData.getAllData();
+        return await (user === 'mom' ? giteeAPIForDataMM : giteeAPIForData).getAllData();
     },
 
     async saveData(records, lastSignInDate) {
+        const user = getCurrentUser();
         if (isLocalhost()) {
-            return await localStorageAPI.saveData(records, lastSignInDate);
+            return await (user === 'mom' ? localStorageAPIMM : localStorageAPI).saveData(records, lastSignInDate);
         }
-        return await giteeAPIForData.saveData(records, lastSignInDate);
+        return await (user === 'mom' ? giteeAPIForDataMM : giteeAPIForData).saveData(records, lastSignInDate);
     }
 };
 
@@ -173,6 +199,13 @@ const customRewardsAPI = new GiteeAPI(
     'points-bonus-rewards.json'
 );
 
+const customRewardsAPIMM = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-rewards-mm.json'
+);
+
 const customTasksAPI = new GiteeAPI(
     'ed5ad25f8f26a4915df21997fbf4c4b6',
     'philipding',
@@ -180,11 +213,25 @@ const customTasksAPI = new GiteeAPI(
     'points-bonus-tasks.json'
 );
 
+const customTasksAPIMM = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-tasks-mm.json'
+);
+
 const customQuestionsAPI = new GiteeAPI(
     'ed5ad25f8f26a4915df21997fbf4c4b6',
     'philipding',
     'json-storage',
     'points-bonus-questions.json'
+);
+
+const customQuestionsAPIMM = new GiteeAPI(
+    'ed5ad25f8f26a4915df21997fbf4c4b6',
+    'philipding',
+    'json-storage',
+    'points-bonus-questions-mm.json'
 );
 
 async function fetchLocalJson(filename) {
@@ -203,16 +250,19 @@ async function fetchLocalJson(filename) {
 }
 
 async function fetchTasks() {
-    const { content: customTasks } = await customTasksAPI.getFileContent();
+    const user = getCurrentUser();
+    const { content: customTasks } = await (user === 'mom' ? customTasksAPIMM : customTasksAPI).getFileContent();
     return customTasks || [];
 }
 
 async function fetchRewards() {
-    const { content: customRewards } = await customRewardsAPI.getFileContent();
+    const user = getCurrentUser();
+    const { content: customRewards } = await (user === 'mom' ? customRewardsAPIMM : customRewardsAPI).getFileContent();
     return customRewards || [];
 }
 
 async function fetchQuestions() {
-    const { content: questions } = await customQuestionsAPI.getFileContent();
+    const user = getCurrentUser();
+    const { content: questions } = await (user === 'mom' ? customQuestionsAPIMM : customQuestionsAPI).getFileContent();
     return questions || [];
 }
