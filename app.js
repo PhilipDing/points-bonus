@@ -19,24 +19,48 @@ class PointsApp {
     }
 
     async init() {
-        await this.loadData();
+        console.log('Starting init...');
+        try {
+            await Promise.race([
+                this.loadData(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Load data timeout')), 10000))
+            ]);
+            console.log('Data loaded');
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
 
-        await Promise.all([
-            this.loadTasks(),
-            this.loadRewards()
-        ]);
+        try {
+            await Promise.race([
+                Promise.all([
+                    this.loadTasks(),
+                    this.loadRewards()
+                ]),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Load tasks/rewards timeout')), 10000))
+            ]);
+            console.log('Tasks and rewards loaded');
+        } catch (error) {
+            console.error('Error loading tasks/rewards:', error);
+        }
+
         this.updatePointsDisplay();
+        console.log('Hiding loading overlay...');
         this.hideLoading();
+        console.log('Init completed');
     }
 
     async loadData() {
-        const data = await giteeAPI.getAllData();
-        if (data && data.records) {
-            this.records = data.records.map(record => ({
-                ...record,
-                used: record.used !== undefined ? record.used : false
-            }));
-            this.lastSignInDate = data.lastSignInDate || '';
+        try {
+            const data = await giteeAPI.getAllData();
+            if (data && data.records) {
+                this.records = data.records.map(record => ({
+                    ...record,
+                    used: record.used !== undefined ? record.used : false
+                }));
+                this.lastSignInDate = data.lastSignInDate || '';
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
         }
     }
 
@@ -83,9 +107,13 @@ class PointsApp {
     }
 
     hideLoading() {
+        console.log('hideLoading called');
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (loadingOverlay) {
+            console.log('Found loading overlay, hiding it');
             loadingOverlay.style.display = 'none';
+        } else {
+            console.error('Loading overlay not found!');
         }
     }
 
@@ -1413,6 +1441,10 @@ function resetLottery() {
 }
 
 function showUserSelector() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
     document.getElementById('userSelector').classList.add('show');
 }
 
@@ -1423,7 +1455,7 @@ async function selectUser(user) {
     setCurrentUser(user);
     updateUserAvatar();
 
-    document.getElementById('loadingOverlay').style.display = 'block';
+    document.getElementById('loadingOverlay').style.display = 'flex';
 
     app = new PointsApp();
     await app.init();

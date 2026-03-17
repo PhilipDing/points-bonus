@@ -125,8 +125,16 @@ class GiteeAPI {
     }
 
     async getAllData() {
-        const { content } = await this.getFileContent();
-        return content;
+        try {
+            const { content } = await Promise.race([
+                this.getFileContent(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Get all data timeout')), 10000))
+            ]);
+            return content;
+        } catch (error) {
+            console.error('Error getting all data:', error);
+            return null;
+        }
     }
 
     async saveData(records, lastSignInDate) {
@@ -250,19 +258,43 @@ async function fetchLocalJson(filename) {
 }
 
 async function fetchTasks() {
-    const user = getCurrentUser();
-    const { content: customTasks } = await (user === 'mom' ? customTasksAPIMM : customTasksAPI).getFileContent();
-    return customTasks || [];
+    try {
+        const user = getCurrentUser();
+        const { content: customTasks } = await Promise.race([
+            (user === 'mom' ? customTasksAPIMM : customTasksAPI).getFileContent(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Fetch tasks timeout')), 10000))
+        ]);
+        return customTasks || [];
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        return [];
+    }
 }
 
 async function fetchRewards() {
-    const user = getCurrentUser();
-    const { content: customRewards } = await (user === 'mom' ? customRewardsAPIMM : customRewardsAPI).getFileContent();
-    return customRewards || [];
+    try {
+        const user = getCurrentUser();
+        const { content: customRewards } = await Promise.race([
+            (user === 'mom' ? customRewardsAPIMM : customRewardsAPI).getFileContent(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Fetch rewards timeout')), 10000))
+        ]);
+        return customRewards || [];
+    } catch (error) {
+        console.error('Error fetching rewards:', error);
+        return [];
+    }
 }
 
 async function fetchQuestions() {
-    const user = getCurrentUser();
-    const { content: questions } = await (user === 'mom' ? customQuestionsAPIMM : customQuestionsAPI).getFileContent();
-    return questions || [];
+    try {
+        const user = getCurrentUser();
+        const { content: questions } = await Promise.race([
+            (user === 'mom' ? customQuestionsAPIMM : customQuestionsAPI).getFileContent(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Fetch questions timeout')), 10000))
+        ]);
+        return questions || [];
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        return [];
+    }
 }

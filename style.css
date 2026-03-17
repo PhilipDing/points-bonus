@@ -309,6 +309,17 @@ body {
     }
 }
 
+@keyframes popInCenter {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 .emoji {
     font-size: 24px;
 }
@@ -380,7 +391,6 @@ body {
     border-top: 6px solid #FF69B4;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto;
 }
 
 @keyframes spin {
@@ -499,20 +509,19 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 9998;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .user-selector.show {
     opacity: 1;
     visibility: visible;
-    background: rgba(0, 0, 0, 0.7);
 }
 
 .user-selector-content {
@@ -522,7 +531,7 @@ body {
     max-width: 400px;
     width: 90%;
     text-align: center;
-    animation: popIn 0.3s ease;
+    animation: popInCenter 0.3s ease;
 }
 
 .user-selector-content h2 {
