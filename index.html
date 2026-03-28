@@ -114,6 +114,11 @@
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
                 </div>
                 <div style="margin-bottom: 10px;">
+                    <input type="text" id="rewardDescription" placeholder="奖品描述（可选）"
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd;
+                                  border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
+                </div>
+                <div style="margin-bottom: 10px;">
                     <input type="number" id="rewardPoints" placeholder="所需积分"
                            style="width: 100%; padding: 12px; border: 2px solid #ddd;
                                   border-radius: 10px; font-size: 16px; margin-bottom: 10px;">
@@ -133,6 +138,20 @@
                     <span class="btn-text">确认添加</span>
                     <span class="btn-loading" style="display: none;">进行中...</span>
                 </button>
+            </div>
+
+            <div style="background: #FFF3E0; border: 2px solid #FFB74D; border-radius: 15px; padding: 15px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 24px; margin-right: 10px;">⚠️</span>
+                    <h3 style="color: #E65100; margin: 0;">重要提示</h3>
+                </div>
+                <p style="color: #E65100; margin: 0; font-size: 14px; line-height: 1.5;">
+                    📅 清明假期后（4月6日及以后），所有奖品的兑换积分将上涨！
+                    <br><br>
+                    💡 建议在4月5日前兑换心仪的奖品，以享受当前的积分价格。
+                    <br><br>
+                    ⏰ 活动时间：即日起至4月5日23:59
+                </p>
             </div>
 
             <div id="rewardList"></div>

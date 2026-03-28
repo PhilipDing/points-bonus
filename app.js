@@ -295,6 +295,7 @@ class PointsApp {
                     id: index + 1,
                     code: reward.code,
                     name: reward.name,
+                    description: reward.description || '',
                     points: reward.points,
                     maxDailyTimes: reward.maxDailyTimes,
                     availableForLottery: reward.availableForLottery || false,
@@ -338,6 +339,7 @@ class PointsApp {
             item.innerHTML = `
                 <div class="item-info">
                     <div class="item-name">${reward.name}</div>
+                    ${reward.description ? `<div class="task-description">${reward.description}</div>` : ''}
                     <div class="item-points minus">${reward.points} 积分</div>
                 </div>
                 <button class="btn btn-secondary btn-small"
@@ -488,11 +490,13 @@ class PointsApp {
         }
 
         const nameInput = document.getElementById('rewardName');
+        const descriptionInput = document.getElementById('rewardDescription');
         const pointsInput = document.getElementById('rewardPoints');
         const maxDailyTimesInput = document.getElementById('rewardMaxDailyTimes');
         const availableForLotteryInput = document.getElementById('rewardAvailableForLottery');
 
         const name = nameInput.value.trim();
+        const description = descriptionInput.value.trim();
         const points = parseInt(pointsInput.value);
         const maxDailyTimes = maxDailyTimesInput.value ? parseInt(maxDailyTimesInput.value) : null;
         const availableForLottery = availableForLotteryInput.checked;
@@ -517,6 +521,7 @@ class PointsApp {
             const newReward = {
                 code: `CUSTOM_${Date.now()}`,
                 name: name,
+                description: description,
                 points: points,
                 maxDailyTimes: maxDailyTimes,
                 availableForLottery: availableForLottery
@@ -527,6 +532,7 @@ class PointsApp {
 
             if (result.success) {
                 nameInput.value = '';
+                descriptionInput.value = '';
                 pointsInput.value = '';
                 maxDailyTimesInput.value = '';
                 availableForLotteryInput.checked = false;
